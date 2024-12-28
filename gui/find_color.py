@@ -1,12 +1,19 @@
 import base64
-import cv2
-import flet as ft
-from threading import Thread
-from cvzone.ColorModule import ColorFinder
+import os
 from io import BytesIO
+from threading import Thread
+
+import cv2
+from cvzone.ColorModule import ColorFinder
+import flet as ft
 
 
 def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png"):
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"Не удалось загрузить изображение: {image_path}")
     # Загружаем изображение
     img = cv2.imread(image_path)
     img = img[200:700, :]  # Обрезка изображения
@@ -17,7 +24,7 @@ def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png")
     return img_color
 
 
-def opencv_thread(page, hsv_vals, image_control):
+def opencv_thread(hsv_vals, image_control, page):
     while True:
         img_color = process_image(hsv_vals)
 
@@ -25,7 +32,7 @@ def opencv_thread(page, hsv_vals, image_control):
         _, buffer = cv2.imencode('.jpg', img_color)
         img_bytes = BytesIO(buffer).getvalue()
 
-        # Кодируем изображение в base64 с использованием стандартной библиотеки base64
+        # Кодируем изображение в base64
         img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
         # Обновляем картинку в Flet
@@ -33,11 +40,11 @@ def opencv_thread(page, hsv_vals, image_control):
         page.update()
 
 
-def find_main(page: ft.Page):
+def load_hsv_tab(page: ft.Page):
     # Начальные значения HSV
     hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 175, 'smax': 255, 'vmax': 255}
 
-    def update_hsv(e):
+    def update_hsv(_):
         # Обновление значений HSV
         hsv_vals['hmin'] = int(hmin.value)
         hsv_vals['smin'] = int(smin.value)
@@ -94,20 +101,19 @@ def find_main(page: ft.Page):
     # Контроль для отображения изображения
     image_control = ft.Image(width=500, height=300, fit=ft.ImageFit.CONTAIN)
 
-    # Основной макет: две части (ползунки и изображение)
-    page.add(
-        ft.Row(
-            [
-                ft.Container(content=controls_column, expand=1),
-                ft.Container(content=image_control, expand=1),
-            ]
-        )
+    # Основной макет вкладки
+    tab_content = ft.Column(
+        [
+            ft.Row(
+                [
+                    ft.Container(content=controls_column, expand=1),
+                    ft.Container(content=image_control, expand=1),
+                ]
+            )
+        ]
     )
 
     # Запуск OpenCV в отдельном потоке
-    Thread(target=opencv_thread, args=(page, hsv_vals, image_control), daemon=True).start()
+    Thread(target=opencv_thread, args=(hsv_vals, image_control, page), daemon=True).start()
 
-
-if __name__ == "__main__":
-    ft.app(target=find_main)
-
+    return tab_content
