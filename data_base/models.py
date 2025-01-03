@@ -3,12 +3,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .config_db import Base
 
 
-class UserSettings(Base):
+class GolfShot(Base):
     __tablename__ = 'user_settings_table'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     speed: Mapped[float]
     angle: Mapped[float]
+    # angle_horizontal: Mapped[float]
     distance: Mapped[int]
     date: Mapped[datetime] = mapped_column(default=datetime.utcnow())
 
