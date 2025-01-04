@@ -6,7 +6,8 @@ import cvzone
 
 # Локальные модули
 import find_angle
-
+from data_base.config_db import async_session_maker
+from data_base.db import DataBase
 from config import hsvVals, frames_in_second, myColorFinder, min_area
 from config import cap
 """
@@ -20,6 +21,17 @@ from config import cap
 # Y - vertical
 
 # =====================================================================================================================
+
+async def add_data_db(max_speed, find_angle, distance=280):
+    # Получаем сессию
+    async with async_session_maker() as session:
+        # Вызываем метод add_data с передачей сессии
+        success = await DataBase.add_data(max_speed, find_angle, distance, session=session)
+        if success:
+            print("Data added successfully")
+        else:
+            print("Failed to add data")
+
 
 async def find_golf_ball(name_vidio_file: str = None):
     # cap = cv2.VideoCapture(f'folder_test_all_open/{name_vidio_file}')
@@ -194,9 +206,8 @@ async def find_golf_ball(name_vidio_file: str = None):
                 coordinates_angle.append(pos_list[-1])
                 coordinates_angle.append([pos_list[-1][0], pos_list[7][1]])
 
-                # coordinates_angle.append(pos_list[-2])
-                # coordinates_angle.append(pos_list[-1])
-                # coordinates_angle.append([pos_list[-1][0], pos_list[-2][1]])
+                # Записываем в БД максимально найденную скорость и найденный угол
+                await add_data_db(max_speed, find_angle.get_angle(coordinates_angle), 280)
 
                 print(coordinates_angle)
                 # Запись найденной макс. скорости, для Unity
