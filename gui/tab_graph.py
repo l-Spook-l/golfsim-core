@@ -60,8 +60,8 @@ def main(page: ft.Page):
         )
     ]
 
-    start_date = ft.TextField(label="Start Date (YYYY-MM-DD)", value="2023-01-01", width=200)
-    end_date = ft.TextField(label="End Date (YYYY-MM-DD)", value="2023-12-31", width=200)
+    start_date = ft.TextField(label="Start Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180)
+    end_date = ft.TextField(label="End Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180)
 
     def handle_change_start(e):
         # page.add(ft.Text(f"Date changed: {e.control.value.strftime('%Y-%m-%d')}"))
@@ -101,6 +101,29 @@ def main(page: ft.Page):
                 # on_dismiss=handle_dismissal,
             )
         ),
+    )
+
+    def dropdown_changed(e):
+        t.value = f"Dropdown changed to {select_club.value}"
+        page.update()
+
+    print(clubs_data['clubs'][0]['name'])
+    t = ft.Text()
+    select_club = ft.Dropdown(
+
+        # value=clubs_data['clubs'][0]['name'],
+        value='Driver',
+        on_change=dropdown_changed,
+        options=[
+                    # ft.dropdown.Option("Red"),
+                    # ft.dropdown.Option("Green"),
+                    # ft.dropdown.Option("Blue"),
+                    # ft.dropdown.Option(club['name']) for club in clubs_data['clubs']
+                    ft.dropdown.Option('driver')  # Значение по умолчанию
+                ] + [
+                    ft.dropdown.Option(club['name']) for club in clubs_data['clubs']
+                ],
+        width=200,
     )
 
     # Функция фильтрации данных
@@ -215,12 +238,28 @@ def main(page: ft.Page):
     # Кнопка обновления данных
     filter_button = ft.ElevatedButton("Filter Data", on_click=lambda _: filter_data())
 
+    select_date_block = ft.Container(
+        # content=ft.Row([start_date, end_date, filter_button, select_start_date, select_end_date],
+        #                alignment=ft.MainAxisAlignment.START),
+        content=ft.Column(
+            [
+                ft.Row([filter_button, select_start_date, select_end_date]),
+                ft.Row([start_date, end_date]),
+                ft.Row([select_club, t]),
+            ],
+            spacing=50,
+        ),
+        bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
+    )
+
     # Добавляем график на страницу
     page.add(
         ft.ElevatedButton("avg", on_click=toggle_data),
-        ft.Row([start_date, end_date, filter_button, select_start_date, select_end_date],
-               alignment=ft.MainAxisAlignment.START),
-        chart_with_padding
+        # ft.Row([start_date, end_date, filter_button, select_start_date, select_end_date],
+        #        alignment=ft.MainAxisAlignment.START),
+        ft.Row([chart_with_padding, select_date_block])
+        # select_date_block,
+        # chart_with_padding,
     )
 
 
