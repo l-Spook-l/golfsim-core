@@ -118,23 +118,25 @@ def main(page: ft.Page):
         ),
     )
 
-    def dropdown_changed(e):
-        t.value = f"Dropdown changed to {select_club.value}"
+    def dropdown_changed_club(value):
+        t.value = f"Dropdown changed to {dropdown_select_club.value}"
+        nonlocal selected_club
+        selected_club = value.data
         page.update()
 
-    def dropdown_changed_unit_system(e):
+    def dropdown_changed_unit_system(value):
         t.value = f"Dropdown changed to {dropdown_select_unit_system.value}"
         chart.left_axis = ft.ChartAxis(
             labels_size=50,
             title=ft.Text(
-                f"Carry Distance ({unit_system.get(dropdown_select_unit_system.value).get('Distance')})", size=25),
+                f"Carry Distance ({unit_system.get(value.data).get('Distance')})", size=25),
             title_size=50,
         )
         chart.bottom_axis = ft.ChartAxis(
             labels_size=50,
             labels_interval=25,
             title=ft.Text(
-                f"Ball Speed ({unit_system.get(dropdown_select_unit_system.value).get('Speed')})", size=25),
+                f"Ball Speed ({unit_system.get(value.data).get('Speed')})", size=25),
             title_size=50,
         )
         chart.update()
