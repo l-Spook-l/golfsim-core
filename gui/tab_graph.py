@@ -5,6 +5,21 @@ from test_data_club import data_club
 
 golf_hits = data_club["golf_hits"]
 
+unit_system = {
+    "Imperial": {
+        "Distance": "Yards",
+        "Speed": "mph",
+    },
+    "Metric": {
+        "Distance": "Meters",
+        "Speed": "km/h",
+    },
+    "Scientific": {
+        "Distance": "Meters",
+        "Speed": "m/s",
+    },
+}
+
 
 class State:
     toggle = True
@@ -107,7 +122,23 @@ def main(page: ft.Page):
         t.value = f"Dropdown changed to {select_club.value}"
         page.update()
 
-    print(clubs_data['clubs'][0]['name'])
+    def dropdown_changed_unit_system(e):
+        t.value = f"Dropdown changed to {dropdown_select_unit_system.value}"
+        chart.left_axis = ft.ChartAxis(
+            labels_size=50,
+            title=ft.Text(
+                f"Carry Distance ({unit_system.get(dropdown_select_unit_system.value).get('Distance')})", size=25),
+            title_size=50,
+        )
+        chart.bottom_axis = ft.ChartAxis(
+            labels_size=50,
+            labels_interval=25,
+            title=ft.Text(
+                f"Ball Speed ({unit_system.get(dropdown_select_unit_system.value).get('Speed')})", size=25),
+            title_size=50,
+        )
+        chart.update()
+
     t = ft.Text()
     select_club = ft.Dropdown(
 
@@ -125,6 +156,16 @@ def main(page: ft.Page):
                 ],
         width=200,
     )
+
+    dropdown_select_unit_system = ft.Dropdown(
+        value="Imperial",
+        on_change=dropdown_changed_unit_system,
+        options=[
+            ft.dropdown.Option(system) for system in unit_system.keys()
+        ],
+        width=150,
+    )
+
 
     # Функция фильтрации данных
     def filter_data():
@@ -176,7 +217,7 @@ def main(page: ft.Page):
             #     ),
             # ],
             labels_size=50,
-            title=ft.Text("Carry Distance", size=25),
+            title=ft.Text(f"Carry Distance ({unit_system.get('Imperial').get('Distance')})", size=25),
             title_size=50,
 
         ),
@@ -202,7 +243,7 @@ def main(page: ft.Page):
             # ],
             labels_size=50,
             labels_interval=25,
-            title=ft.Text("Ball Speed", size=25),
+            title=ft.Text(f"Carry Distance ({unit_system.get('Imperial').get('Speed')})", size=25),
             title_size=50,
         ),
         # LineChart - настройки
@@ -245,9 +286,10 @@ def main(page: ft.Page):
             [
                 ft.Row([filter_button, select_start_date, select_end_date]),
                 ft.Row([start_date, end_date]),
-                ft.Row([select_club, t]),
+                ft.Row([ft.Text("Select club", size=22), dropdown_select_club]),
+                ft.Row([ft.Text("Select unit system", size=22), dropdown_select_unit_system]),
             ],
-            spacing=50,
+            spacing=30,
         ),
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
     )
