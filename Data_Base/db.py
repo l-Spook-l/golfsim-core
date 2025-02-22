@@ -32,7 +32,7 @@ class DataBase:
     @classmethod
     async def get_data(cls, session: AsyncSession):
         try:
-            query = select(GolfShot)
+            query = select(GolfShot).order_by(GolfShot.date.desc())
             res = await session.execute(query)
             return res.scalars().all()
         except Exception as error:
