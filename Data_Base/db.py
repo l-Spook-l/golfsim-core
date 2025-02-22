@@ -7,10 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 class DataBase:
     @classmethod
-    async def add_data(cls, speed_ball: [int, float], angle: [int, float], distance: [int, float],
-                       session: AsyncSession) -> bool:
+    async def add_data(cls, shot_result: dict, session: AsyncSession) -> bool:
+
         try:
-            stat = insert(GolfShot).values(speed=speed_ball, angle=angle, distance=distance)
+            print("dqweqweqw", GolfShot(**shot_result))
+            stat = insert(GolfShot).values(**shot_result)
             await session.execute(stat)
             await session.commit()
             return True
