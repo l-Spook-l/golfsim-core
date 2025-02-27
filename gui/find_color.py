@@ -24,7 +24,7 @@ def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png")
     return img_color
 
 
-def opencv_thread(hsv_vals, image_control, page):
+def opencv_thread(hsv_vals, image_control):
     while True:
         img_color = process_image(hsv_vals)
 
@@ -37,7 +37,7 @@ def opencv_thread(hsv_vals, image_control, page):
 
         # Обновляем картинку в Flet
         image_control.src_base64 = img_base64
-        page.update()
+        image_control.update()
 
 
 def load_hsv_tab(page: ft.Page):
