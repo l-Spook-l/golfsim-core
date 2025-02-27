@@ -1,11 +1,12 @@
 import base64
 import os
+import httpx
 from io import BytesIO
 from threading import Thread
 
 import cv2
-from cvzone.ColorModule import ColorFinder
 import flet as ft
+from cvzone.ColorModule import ColorFinder
 
 
 def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png"):
@@ -40,8 +41,8 @@ def opencv_thread(hsv_vals, image_control):
         image_control.update()
 
 
-def load_hsv_tab(page: ft.Page):
-    # Начальные значения HSV
+def load_hsv_tab():
+    # # Начальные значения HSV
     hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 175, 'smax': 255, 'vmax': 255}
 
     def update_hsv(_):
@@ -61,13 +62,29 @@ def load_hsv_tab(page: ft.Page):
         smax_text.value = f"Saturation Max: {hsv_vals['smax']}"
         vmax_text.value = f"Value Max: {hsv_vals['vmax']}"
 
-        page.update()
+        image_control.update()
+
+    async def save_hsv_values(_):
+        # Сохранение значений HSV и отправка на сервер
+        print("Сохраненные значения HSV:", hsv_vals)
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "http://192.168.50.107:8000/update-hsv",  # URL вашего сервера
+                    json={"hsv_vals": hsv_vals}  # Данные для отправки
+                )
+                if response.status_code == 200:
+                    print("Успешно отправлено на сервер:", response.json())
+                else:
+                    print("Ошибка при отправке на сервер:", response.text)
+        except Exception as e:
+            print(f"Ошибка при отправке данных: {e}")
 
     # Ползунки HSV
-    hmin = ft.Slider(min=0, max=179, value=hsv_vals['hmin'], label="Hue Min", on_change=update_hsv)
+    hmin = ft.Slider(min=0, max=175, value=hsv_vals['hmin'], label="Hue Min", on_change=update_hsv)
     smin = ft.Slider(min=0, max=255, value=hsv_vals['smin'], label="Saturation Min", on_change=update_hsv)
     vmin = ft.Slider(min=0, max=255, value=hsv_vals['vmin'], label="Value Min", on_change=update_hsv)
-    hmax = ft.Slider(min=0, max=179, value=hsv_vals['hmax'], label="Hue Max", on_change=update_hsv)
+    hmax = ft.Slider(min=0, max=175, value=hsv_vals['hmax'], label="Hue Max", on_change=update_hsv)
     smax = ft.Slider(min=0, max=255, value=hsv_vals['smax'], label="Saturation Max", on_change=update_hsv)
     vmax = ft.Slider(min=0, max=255, value=hsv_vals['vmax'], label="Value Max", on_change=update_hsv)
 
@@ -78,6 +95,8 @@ def load_hsv_tab(page: ft.Page):
     hmax_text = ft.Text(f"Hue Max: {hsv_vals['hmax']}")
     smax_text = ft.Text(f"Saturation Max: {hsv_vals['smax']}")
     vmax_text = ft.Text(f"Value Max: {hsv_vals['vmax']}")
+
+    save_button = ft.ElevatedButton(text="Сохранить значения HSV", on_click=save_hsv_values)
 
     # Контейнер с ползунками и значениями
     controls_column = ft.Column(
@@ -95,6 +114,7 @@ def load_hsv_tab(page: ft.Page):
             smax_text,
             vmax,
             vmax_text,
+            save_button,
         ]
     )
 
