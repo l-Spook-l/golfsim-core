@@ -62,7 +62,7 @@ def load_hsv_tab():
         smax_text.value = f"Saturation Max: {hsv_vals['smax']}"
         vmax_text.value = f"Value Max: {hsv_vals['vmax']}"
 
-        image_control.update()
+        tab_content.update()
 
     async def save_hsv_values(_):
         # Сохранение значений HSV и отправка на сервер
