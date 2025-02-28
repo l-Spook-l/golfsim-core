@@ -122,18 +122,14 @@ def load_hsv_tab():
     image_control = ft.Image(width=500, height=300, fit=ft.ImageFit.CONTAIN)
 
     # Основной макет вкладки
-    tab_content = ft.Column(
+    tab_content = ft.Row(
         [
-            ft.Row(
-                [
-                    ft.Container(content=controls_column, expand=1),
-                    ft.Container(content=image_control, expand=1),
-                ]
-            )
+            ft.Container(content=controls_column, bgcolor=ft.Colors.BROWN_600),
+            ft.Container(content=image_control, bgcolor=ft.Colors.LIGHT_GREEN),
         ]
     )
 
     # Запуск OpenCV в отдельном потоке
-    Thread(target=opencv_thread, args=(hsv_vals, image_control, page), daemon=True).start()
+    Thread(target=opencv_thread, args=(hsv_vals, image_control), daemon=True).start()
 
     return tab_content
