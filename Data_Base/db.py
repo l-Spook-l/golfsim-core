@@ -1,4 +1,7 @@
-from sqlalchemy import insert, select
+import logging
+from datetime import datetime
+
+from sqlalchemy import insert, select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import GolfShot
@@ -31,11 +34,19 @@ class DataBase:
         return last_shot  # Вернем объект GolfShot
 
     @classmethod
-    async def get_data(cls, session: AsyncSession):
+    async def get_data(cls, session: AsyncSession, start_date: datetime = None, end_date: datetime = None):
+        # golf_club_name = f"%{golf_club_name}%"
+        # golf_club_name, limit
         try:
-            query = select(GolfShot).order_by(GolfShot.date.desc())
+            query = select(GolfShot)
+
+            if start_date and end_date:
+                query = query.where(GolfShot.date >= start_date, GolfShot.date <= end_date)
+
+            query = query.order_by(GolfShot.date.desc())
             res = await session.execute(query)
-            return res.scalars().all()
+
+            return res.scalars().fetchall()
         except Exception as error:
             print(f"Error occurred while reading data: {error}")
             return False
