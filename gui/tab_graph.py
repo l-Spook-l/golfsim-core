@@ -1,7 +1,11 @@
-import flet as ft
 from datetime import datetime
-from test_data_club import data_club
 
+import flet as ft
+
+from .tab_stat_table import load_stat_tab
+from .tab_stat_graph import load_stat_graph
+from data_base.config_db import async_session_maker
+from data_base.db import DataBase
 
 golf_list_clubs = ("All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
                    "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
@@ -175,89 +179,69 @@ async def create_date_filter(tab, index_tab: int, page, dropdown_select_club, dr
         # height=100,
     )
 
-        ),
-        # нижняя строка
-        bottom_axis=ft.ChartAxis(
-            # labels=[
-            #     ft.ChartAxisLabel(
-            #         value=50,
-            #         label=ft.Text("50", size=14, weight=ft.FontWeight.BOLD),
-            #     ),
-            #     ft.ChartAxisLabel(
-            #         value=100,
-            #         label=ft.Text("100", size=14, weight=ft.FontWeight.BOLD),
-            #     ),
-            #     ft.ChartAxisLabel(
-            #         value=150,
-            #         label=ft.Text("150", size=14, weight=ft.FontWeight.BOLD),
-            #     ),
-            #     # ft.ChartAxisLabel(
-            #     #     value=200,
-            #     #     label=ft.Text("200", size=14, weight=ft.FontWeight.BOLD),
-            #     # ),
-            # ],
-            labels_size=50,
-            labels_interval=25,
-            title=ft.Text(f"Carry Distance ({unit_system.get('Imperial').get('Speed')})", size=25),
-            title_size=50,
-        ),
-        # LineChart - настройки
-        tooltip_bgcolor=ft.Colors.with_opacity(0.8, ft.Colors.BLUE_GREY),
-        min_y=0,
-        max_y=350,
-        min_x=0,
-        max_x=150,
-        animate=500,
-        expand=True,
+
+async def load_stat(page: ft.Page):
+    # Загружаем данные
+    table = await load_stat_tab()
+    chart = await load_stat_graph()
+
+    async def change_view_graph(e):
+        nonlocal date_filter_block  # Позволяет менять переменную в родительской области
+
+        # Определяем текущий активный контент (график или таблица)
+        current_tab = None
+
+        match tabs.selected_index:
+            case 0:
+                current_tab = table
+            case 1:
+                current_tab = chart
+
+        chart_with_padding.content = current_tab  # Меняем контент
+
+        # Пересоздаем фильтр, передавая текущий активный элемент
+        date_filter_block.content = await create_date_filter(
+            current_tab, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
+        )
+
+        date_filter_block.update()
+        tab_content.update()
+
+    tabs = ft.Tabs(
+        selected_index=0,
+        on_change=change_view_graph,
+        tabs=[
+            ft.Tab(text="Table"),
+            ft.Tab(text="Graph"),
+        ],
+        # expand=1,
     )
 
-    def toggle_data(e):
-        if s.toggle:
-            chart.data_series = data_2
-            chart.interactive = False
-        else:
-            chart.data_series = data_1
-            chart.interactive = True
-        s.toggle = not s.toggle
-        chart.update()
-
-    # page.add(ft.ElevatedButton("avg", on_click=toggle_data), chart)
     # Оборачиваем график в контейнер для отступов
     chart_with_padding = ft.Container(
-        content=chart,
-        margin=ft.margin.all(50),  # Задаем отступы со всех сторон
-        width=800,  # Устанавливаем ширину контейнера
-        height=600,  # Устанавливаем высоту контейнера
+        content=table,
+        # margin=ft.margin.all(50),  # Задаем отступы со всех сторон
+        # width=1100,  # Устанавливаем ширину контейнера
+        # height=550,  # Устанавливаем высоту контейнера
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.BLUE),  # Фоновый цвет для визуализации
     )
 
-    # Кнопка обновления данных
-    filter_button = ft.ElevatedButton("Filter Data", on_click=lambda _: filter_data())
+    # Создаем элементы UI
+    dropdown_select_club, dropdown_select_unit_system = create_dropdowns(chart, page)
 
-    select_date_block = ft.Container(
-        # content=ft.Row([start_date, end_date, filter_button, select_start_date, select_end_date],
-        #                alignment=ft.MainAxisAlignment.START),
-        content=ft.Column(
-            [
-                ft.Row([filter_button, select_start_date, select_end_date]),
-                ft.Row([start_date, end_date]),
-                ft.Row([ft.Text("Select club", size=22), dropdown_select_club]),
-                ft.Row([ft.Text("Select unit system", size=22), dropdown_select_unit_system]),
-            ],
-            spacing=30,
-        ),
-        bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
+    date_filter_block = await create_date_filter(
+        table, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
     )
 
-    # Добавляем график на страницу
-    page.add(
-        ft.ElevatedButton("avg", on_click=toggle_data),
-        # ft.Row([start_date, end_date, filter_button, select_start_date, select_end_date],
-        #        alignment=ft.MainAxisAlignment.START),
-        ft.Row([chart_with_padding, select_date_block])
-        # select_date_block,
-        # chart_with_padding,
+    tab_content = ft.Column(
+        [
+            date_filter_block,
+            tabs,
+            # ft.Row([dropdown_select_club, dropdown_select_unit_system], spacing=30),
+            chart_with_padding
+        ],
+        # scroll=ft.ScrollMode.ALWAYS,
     )
 
+    return tab_content
 
-ft.app(main)
