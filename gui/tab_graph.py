@@ -59,58 +59,121 @@ def create_dropdowns(chart, page):
 
     return dropdown_select_club, dropdown_select_unit_system
 
-    # Функция фильтрации данных
-    def filter_data():
+
+def update_chart_data(chart, data):
+    chart.data_series = [
+        ft.LineChartData(
+            data_points=[
+                ft.LineChartDataPoint(hit.ball_speed, hit.carry) for hit in data
+            ],
+            stroke_width=0,
+            point=True,
+        )
+    ]
+    chart.update()
+
+
+def update_table_data(table, data):
+    res = [
+        [
+            str(golf_shot.id),
+            str(golf_shot.ball_speed),
+            str(golf_shot.angle_v),
+            str(golf_shot.angle_h),
+            str(golf_shot.carry),
+            str(golf_shot.roll),
+            str(golf_shot.total),
+            str(golf_shot.lateral),
+            str(golf_shot.spin),
+            golf_shot.date.strftime("%d-%m-%Y %H:%M:%S"),
+        ]
+        for golf_shot in data
+    ]
+
+    table.rows = [
+        ft.DataRow(
+            cells=[ft.DataCell(ft.Text(cell, size=18, text_align=ft.TextAlign.CENTER, width=95)) for cell in row])
+        for row in res
+    ]
+
+    table.update()
+
+
+# Функция фильтрации данных
+async def create_date_filter(tab, index_tab: int, page, dropdown_select_club, dropdown_select_unit_system):
+    start_date = ft.TextField(label="Start Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
+                              text_size=18, read_only=True)
+    end_date = ft.TextField(label="End Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
+                            text_size=18, read_only=True)
+
+    def handle_change_start(e):
+        start_date.value = e.control.value.strftime('%Y-%m-%d')
+        start_date.update()
+
+    def handle_change_end(e):
+        end_date.value = e.control.value.strftime('%Y-%m-%d')
+        end_date.update()
+
+    select_start_date = ft.ElevatedButton(
+        "Start date",
+        icon=ft.Icons.CALENDAR_MONTH,
+        on_click=lambda e: page.open(
+            ft.DatePicker(
+                first_date=datetime(year=1923, month=1, day=1),
+                last_date=datetime.now(),
+                on_change=handle_change_start,
+            )
+        ),
+    )
+
+    select_end_date = ft.ElevatedButton(
+        "End date",
+        icon=ft.Icons.CALENDAR_MONTH,
+        on_click=lambda e: page.open(
+            ft.DatePicker(
+                first_date=datetime(year=1923, month=1, day=1),
+                last_date=datetime.now(),
+                on_change=handle_change_end,
+            )
+        ),
+    )
+
+    async def filter_data():
         start = datetime.strptime(start_date.value, "%Y-%m-%d")
         end = datetime.strptime(end_date.value, "%Y-%m-%d")
 
-        # Фильтруем данные по дате
-        filtered_hits = [
-            hit for hit in golf_hits
-            if start <= datetime.strptime(hit["date"], "%Y-%m-%d") <= end
-        ]
+        async with async_session_maker() as session:
+            filtered_shots = await DataBase.get_data(session, start, end)
 
-        # Обновляем данные для графика
-        chart.data_series = [
-            ft.LineChartData(
-                data_points=[
-                    ft.LineChartDataPoint(hit["ball_speed"], hit["distance"]) for hit in filtered_hits
-                ],
-                stroke_width=0,
-                point=True,
-            )
-        ]
-        chart.update()
+        print('filter_data - filtered_shots', filtered_shots)
+        match index_tab:
+            case 0:
+                update_table_data(tab, filtered_shots)
+            case 1:
+                update_chart_data(tab, filtered_shots)
 
-    chart = ft.LineChart(
-        # interactive=False,
-        data_series=data_1,
-        border=ft.border.all(3, ft.Colors.with_opacity(0.2, ft.Colors.ON_SURFACE)),
-        horizontal_grid_lines=ft.ChartGridLines(
-            interval=50, color=ft.Colors.with_opacity(0.2, ft.Colors.ON_SURFACE), width=1
+    async def handle_click(_):
+        await filter_data()
+
+    # Кнопка обновления данных
+    filter_button = ft.ElevatedButton("Filter Data", on_click=handle_click)
+
+    return ft.Container(
+        content=ft.Row(
+            [
+                filter_button,
+                ft.Column(
+                    [ft.Row([select_start_date, select_end_date]),
+                     ft.Row([start_date, end_date]), ]
+                ),
+                ft.Column([ft.Text("Select club", size=22), dropdown_select_club]),
+                ft.Column([ft.Text("Select unit system", size=22), dropdown_select_unit_system]),
+            ],
+            spacing=30,
         ),
-        vertical_grid_lines=ft.ChartGridLines(
-            interval=25, color=ft.Colors.with_opacity(0.2, ft.Colors.ON_SURFACE), width=1
-        ),
-        # левая строка
-        left_axis=ft.ChartAxis(
-            # labels=[
-            #     ft.ChartAxisLabel(
-            #         value=100,
-            #         label=ft.Text("100", size=14, weight=ft.FontWeight.BOLD),
-            #     ),
-            #     ft.ChartAxisLabel(
-            #         value=200,
-            #         label=ft.Text("200", size=14, weight=ft.FontWeight.BOLD),
-            #     ),
-            #     ft.ChartAxisLabel(
-            #         value=300,
-            #         label=ft.Text("300", size=14, weight=ft.FontWeight.BOLD),
-            #     ),
-            # ],
-            labels_size=50,
-            title=ft.Text(f"Carry Distance ({unit_system.get('Imperial').get('Distance')})", size=25),
-            title_size=50,
+        bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
+        # height=100,
+    )
 
         ),
         # нижняя строка
