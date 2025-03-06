@@ -13,119 +13,25 @@ unit_system = {
 }
 
 
-class State:
-    toggle = True
-
-
-s = State()
-
-
-def main(page: ft.Page):
-    data_1 = [
-        ft.LineChartData(
-            # data_points=[
-            #     ft.LineChartDataPoint(0, 3),
-            #     ft.LineChartDataPoint(2.6, 2),
-            #     ft.LineChartDataPoint(4.9, 5),
-            #     ft.LineChartDataPoint(6.8, 3.1),
-            #     ft.LineChartDataPoint(8, 4),
-            #     ft.LineChartDataPoint(9.5, 3),
-            #     ft.LineChartDataPoint(11, 4),
-            # ],
-            data_points=[
-                ft.LineChartDataPoint(
-                    hit["ball_speed"], hit["distance"],
-                    tooltip=f'{hit["ball_speed"]} and {hit["distance"]}',
-                    show_tooltip=True,
-                    # selected=True
-                    selected_below_line=False
-                ) for hit in golf_hits
-            ],
-            stroke_width=0,  # Ширина линии диаграммы.
-            # color=ft.Colors.CYAN,  # Цвет линии
-            # curved=True,   # Установите True для закругления углов (график более плавный). По умолчанию False.
-            # stroke_cap_round=True,  # Установите True для рисования закругленных концов линий. По умолчанию False.
-            point=True  # True- рисовать точку стилем по умолчанию или False- не рисовать точку линии
-        )
-    ]
-
-    data_2 = [
-        ft.LineChartData(
-            data_points=[
-                ft.LineChartDataPoint(0, 3.44),
-                ft.LineChartDataPoint(2.6, 3.44),
-                ft.LineChartDataPoint(4.9, 3.44),
-                ft.LineChartDataPoint(6.8, 3.44),
-                ft.LineChartDataPoint(8, 3.44),
-                ft.LineChartDataPoint(9.5, 3.44),
-                ft.LineChartDataPoint(11, 3.44),
-            ],
-            stroke_width=5,
-            color=ft.Colors.CYAN,
-            curved=True,
-            stroke_cap_round=True,
-        )
-    ]
-
-    start_date = ft.TextField(label="Start Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180)
-    end_date = ft.TextField(label="End Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180)
-
-    def handle_change_start(e):
-        # page.add(ft.Text(f"Date changed: {e.control.value.strftime('%Y-%m-%d')}"))
-        start_date.value = e.control.value.strftime('%Y-%m-%d')
-        page.update()
-
-    def handle_change_end(e):
-        # page.add(ft.Text(f"Date changed: {e.control.value.strftime('%Y-%m-%d')}"))
-        end_date.value = e.control.value.strftime('%Y-%m-%d')
-        page.update()
-
-    # def handle_dismissal(e):
-        # page.add(ft.Text(f"DatePicker dismissed"))
-        # pass
-
-    select_start_date = ft.ElevatedButton(
-        "Start date",
-        icon=ft.Icons.CALENDAR_MONTH,
-        on_click=lambda e: page.open(
-            ft.DatePicker(
-                first_date=datetime(year=1923, month=1, day=1),
-                last_date=datetime.now(),
-                on_change=handle_change_start,
-                # on_dismiss=handle_dismissal,
-            )
-        ),
-    )
-
-    select_end_date = ft.ElevatedButton(
-        "End date",
-        icon=ft.Icons.CALENDAR_MONTH,
-        on_click=lambda e: page.open(
-            ft.DatePicker(
-                first_date=datetime(year=1923, month=1, day=1),
-                last_date=datetime.now(),
-                on_change=handle_change_end,
-                # on_dismiss=handle_dismissal,
-            )
-        ),
-    )
-
+def create_dropdowns(chart, page):
     def dropdown_changed_club(value):
-        t.value = f"Dropdown changed to {dropdown_select_club.value}"
-        nonlocal selected_club
-        selected_club = value.data
-        page.update()
+        page.defer_update = True  # Отключаем авто обновление временно
+        chart.top_axis = ft.ChartAxis(
+            title=ft.Text(f"Club - {value.data}", size=25),
+            title_size=50,
+            show_labels=False)
+        chart.update()
 
     def dropdown_changed_unit_system(value):
-        t.value = f"Dropdown changed to {dropdown_select_unit_system.value}"
         chart.left_axis = ft.ChartAxis(
             labels_size=50,
             title=ft.Text(
                 f"Carry Distance ({unit_system.get(value.data).get('Distance')})", size=25),
             title_size=50,
         )
+
         chart.bottom_axis = ft.ChartAxis(
-            labels_size=50,
+            labels_size=30,
             labels_interval=25,
             title=ft.Text(
                 f"Ball Speed ({unit_system.get(value.data).get('Speed')})", size=25),
@@ -133,22 +39,13 @@ def main(page: ft.Page):
         )
         chart.update()
 
-    t = ft.Text()
-    select_club = ft.Dropdown(
-
-        # value=clubs_data['clubs'][0]['name'],
-        value='Driver',
-        on_change=dropdown_changed,
+    dropdown_select_club = ft.Dropdown(
+        value=golf_list_clubs[0],  # Значение по умолчанию
+        on_change=dropdown_changed_club,
         options=[
-                    # ft.dropdown.Option("Red"),
-                    # ft.dropdown.Option("Green"),
-                    # ft.dropdown.Option("Blue"),
-                    # ft.dropdown.Option(club['name']) for club in clubs_data['clubs']
-                    ft.dropdown.Option('driver')  # Значение по умолчанию
-                ] + [
-                    ft.dropdown.Option(club['name']) for club in clubs_data['clubs']
-                ],
-        width=200,
+            ft.dropdown.Option(club) for club in golf_list_clubs
+        ],
+        width=150,
     )
 
     dropdown_select_unit_system = ft.Dropdown(
@@ -160,6 +57,7 @@ def main(page: ft.Page):
         width=150,
     )
 
+    return dropdown_select_club, dropdown_select_unit_system
 
     # Функция фильтрации данных
     def filter_data():
