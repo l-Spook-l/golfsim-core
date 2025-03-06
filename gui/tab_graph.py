@@ -3,21 +3,13 @@ from datetime import datetime
 from test_data_club import data_club
 
 
-golf_hits = data_club["golf_hits"]
+golf_list_clubs = ("All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
+                   "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
 
 unit_system = {
-    "Imperial": {
-        "Distance": "Yards",
-        "Speed": "mph",
-    },
-    "Metric": {
-        "Distance": "Meters",
-        "Speed": "km/h",
-    },
-    "Scientific": {
-        "Distance": "Meters",
-        "Speed": "m/s",
-    },
+    "Imperial": {"Distance": "Yards", "Speed": "mph"},
+    "Metric": {"Distance": "Meters", "Speed": "km/h"},
+    "Scientific": {"Distance": "Meters", "Speed": "m/s"},
 }
 
 
