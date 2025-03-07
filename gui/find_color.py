@@ -16,7 +16,7 @@ def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png")
     if img is None:
         raise ValueError(f"Не удалось загрузить изображение: {image_path}")
     # Загружаем изображение
-    img = cv2.imread(image_path)
+
     img = img[200:700, :]  # Обрезка изображения
 
     # Создаем ColorFinder
