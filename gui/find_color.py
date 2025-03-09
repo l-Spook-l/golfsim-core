@@ -92,25 +92,16 @@ def load_hsv_tab():
 
     save_button = ft.ElevatedButton(text="Сохранить значения HSV", on_click=save_hsv_values)
 
-    # Контейнер с ползунками и значениями
-    controls_column = ft.Column(
-        [
-            ft.Text("Настройка параметров HSV:"),
-            hmin,
-            hmin_text,
-            smin,
-            smin_text,
-            vmin,
-            vmin_text,
-            hmax,
-            hmax_text,
-            smax,
-            smax_text,
-            vmax,
-            vmax_text,
-            save_button,
-        ]
-    )
+    controls_column = ft.Column([
+        ft.Text("Настройка параметров HSV:"),
+        hmin, hmin_text,
+        smin, smin_text,
+        vmin, vmin_text,
+        hmax, hmax_text,
+        smax, smax_text,
+        vmax, vmax_text,
+        save_button,
+    ])
 
     # Контроль для отображения изображения
     image_control = ft.Image(width=500, height=300, fit=ft.ImageFit.CONTAIN)
