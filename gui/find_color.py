@@ -1,48 +1,58 @@
 import base64
 import os
 import httpx
+import asyncio
 from io import BytesIO
-from threading import Thread
 
 import cv2
 import flet as ft
 from cvzone.ColorModule import ColorFinder
 
+# Глобальная переменная для управления задачами
+active_task = None
+stop_event = asyncio.Event()
 
-def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png"):
+
+async def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png"):
+    """Обрабатывает изображение и возвращает цветовую маску."""
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
+
     img = cv2.imread(image_path)
     if img is None:
         raise ValueError(f"Не удалось загрузить изображение: {image_path}")
-    # Загружаем изображение
 
-    img = img[200:700, :]  # Обрезка изображения
-
-    # Создаем ColorFinder
+    img = img[200:700, :]  # Обрезаем изображение
     color_finder = ColorFinder(False)
     img_color, _ = color_finder.update(img, hsv_vals)
+
     return img_color
 
 
-def opencv_thread(hsv_vals, image_control):
-    while True:
-        img_color = process_image(hsv_vals)
+async def opencv_task(hsv_vals, image_control):
+    """Асинхронная задача для обновления изображения."""
+    global stop_event
+    stop_event.clear()  # Разрешаем выполнение цикла
 
-        # Преобразуем изображение в формат для Flet
+    while not stop_event.is_set():
+        img_color = await process_image(hsv_vals)
+
+        # Преобразуем изображение в base64
         _, buffer = cv2.imencode('.jpg', img_color)
         img_bytes = BytesIO(buffer).getvalue()
-
-        # Кодируем изображение в base64
         img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
-        # Обновляем картинку в Flet
+        # Обновляем изображение в Flet
         image_control.src_base64 = img_base64
         image_control.update()
 
+        await asyncio.sleep(0.05)  # Даем небольшую паузу, чтобы снизить нагрузку
 
-def load_hsv_tab():
-    # # Начальные значения HSV
+
+async def load_hsv_tab():
+    """Загружает вкладку HSV-настроек и управляет асинхронной задачей."""
+    global active_task, stop_event
+
     hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 175, 'smax': 255, 'vmax': 255}
 
     def update_hsv(_):
@@ -66,7 +76,7 @@ def load_hsv_tab():
         tab_content.update()
 
     async def save_hsv_values(_):
-        # Сохранение значений HSV и отправка на сервер
+        """Сохраняет HSV-значения и отправляет на сервер."""
         print("Сохраненные значения HSV:", hsv_vals)
         try:
             async with httpx.AsyncClient() as client:
@@ -106,15 +116,18 @@ def load_hsv_tab():
     # Контроль для отображения изображения
     image_control = ft.Image(width=500, height=300, fit=ft.ImageFit.CONTAIN)
 
-    # Основной макет вкладки
-    tab_content = ft.Row(
-        [
-            ft.Container(content=controls_column, bgcolor=ft.Colors.BROWN_600),
-            ft.Container(content=image_control, bgcolor=ft.Colors.LIGHT_GREEN),
-        ]
-    )
+    tab_content = ft.Row([
+        ft.Container(content=controls_column, bgcolor=ft.Colors.BROWN_600),
+        ft.Container(content=image_control, bgcolor=ft.Colors.LIGHT_GREEN),
+    ])
 
-    # Запуск OpenCV в отдельном потоке
-    Thread(target=opencv_thread, args=(hsv_vals, image_control), daemon=True).start()
+    # **ОСТАНАВЛИВАЕМ старую асинхронную задачу, если она уже работает**
+    if active_task is not None:
+        stop_event.set()  # Останавливаем цикл в `opencv_task`
+        await active_task  # Ждем завершения задачи
+
+    # **Запускаем новую асинхронную задачу**
+    stop_event.clear()  # Разрешаем новый запуск
+    active_task = asyncio.create_task(opencv_task(hsv_vals, image_control))
 
     return tab_content
