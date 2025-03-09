@@ -46,13 +46,14 @@ def load_hsv_tab():
     hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 175, 'smax': 255, 'vmax': 255}
 
     def update_hsv(_):
-        # Обновление значений HSV
-        hsv_vals['hmin'] = int(hmin.value)
-        hsv_vals['smin'] = int(smin.value)
-        hsv_vals['vmin'] = int(vmin.value)
-        hsv_vals['hmax'] = int(hmax.value)
-        hsv_vals['smax'] = int(smax.value)
-        hsv_vals['vmax'] = int(vmax.value)
+        hsv_vals.update({
+            'hmin': int(hmin.value),
+            'smin': int(smin.value),
+            'vmin': int(vmin.value),
+            'hmax': int(hmax.value),
+            'smax': int(smax.value),
+            'vmax': int(vmax.value),
+        })
 
         # Обновление текста значений
         hmin_text.value = f"Hue Min: {hsv_vals['hmin']}"
