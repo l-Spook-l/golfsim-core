@@ -82,20 +82,13 @@ def load_hsv_tab():
             print(f"Ошибка при отправке данных: {e}")
 
     # Ползунки HSV
-    hmin = ft.Slider(min=0, max=175, value=hsv_vals['hmin'], label="Hue Min", on_change=update_hsv)
-    smin = ft.Slider(min=0, max=255, value=hsv_vals['smin'], label="Saturation Min", on_change=update_hsv)
-    vmin = ft.Slider(min=0, max=255, value=hsv_vals['vmin'], label="Value Min", on_change=update_hsv)
-    hmax = ft.Slider(min=0, max=175, value=hsv_vals['hmax'], label="Hue Max", on_change=update_hsv)
-    smax = ft.Slider(min=0, max=255, value=hsv_vals['smax'], label="Saturation Max", on_change=update_hsv)
-    vmax = ft.Slider(min=0, max=255, value=hsv_vals['vmax'], label="Value Max", on_change=update_hsv)
+    hmin, smin, vmin = [ft.Slider(min=0, max=255, value=hsv_vals[key], label=key, on_change=update_hsv) for key in
+                        ['hmin', 'smin', 'vmin']]
+    hmax, smax, vmax = [ft.Slider(min=0, max=255, value=hsv_vals[key], label=key, on_change=update_hsv) for key in
+                        ['hmax', 'smax', 'vmax']]
 
-    # Тексты для отображения значений
-    hmin_text = ft.Text(f"Hue Min: {hsv_vals['hmin']}")
-    smin_text = ft.Text(f"Saturation Min: {hsv_vals['smin']}")
-    vmin_text = ft.Text(f"Value Min: {hsv_vals['vmin']}")
-    hmax_text = ft.Text(f"Hue Max: {hsv_vals['hmax']}")
-    smax_text = ft.Text(f"Saturation Max: {hsv_vals['smax']}")
-    vmax_text = ft.Text(f"Value Max: {hsv_vals['vmax']}")
+    hmin_text, smin_text, vmin_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmin', 'smin', 'vmin']]
+    hmax_text, smax_text, vmax_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmax', 'smax', 'vmax']]
 
     save_button = ft.ElevatedButton(text="Сохранить значения HSV", on_click=save_hsv_values)
 
