@@ -17,13 +17,17 @@ def main(page: ft.Page):
         width=1550
     )
 
-    def load_menu_content(menu_index):
+    # Функция для загрузки контента в зависимости от выбранного пункта меню
+    async def load_menu_content(menu_index):
         # Загрузка контента в зависимости от выбранного пункта меню
         match menu_index:
             case 0:
-                content_container.content = load_tab_1(page)
+                content_container.content = await load_home(page)
             case 1:
-                content_container.content = load_tab_2(page)
+                content_container.content = await load_settings(page)
+
+        content_container.update()
+
         page.update()
 
     # Боковое меню
