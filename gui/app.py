@@ -11,7 +11,11 @@ def main(page: ft.Page):
     page.padding = 0
 
     # Контейнер для отображения текущего содержимого
-    content_container = ft.Container(expand=True)
+    content_container = ft.Container(
+        bgcolor=ft.Colors.YELLOW_200,
+        padding=10,
+        width=1550
+    )
 
     def load_menu_content(menu_index):
         # Загрузка контента в зависимости от выбранного пункта меню
