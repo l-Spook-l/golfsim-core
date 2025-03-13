@@ -6,15 +6,9 @@ from tab_2 import load_tab_2
 
 def main(page: ft.Page):
     # Устанавливаем размер окна и позиционируем его по центру
-    screen_width = page.window.width
-    screen_height = page.window.height
-    window_width = 1100
-    window_height = 700
-
-    page.window.width = window_width
-    page.window.height = window_height
-    page.window.top = (screen_height - window_height) // 2
-    page.window.left = (screen_width - window_width) // 2
+    page.window.width = 1800
+    page.window.height = 900
+    page.padding = 0
 
     # Контейнер для отображения текущего содержимого
     content_container = ft.Container(expand=True)
