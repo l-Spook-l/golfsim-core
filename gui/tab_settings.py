@@ -1,21 +1,25 @@
 import flet as ft
 from .find_color import load_hsv_tab
+from .find_point import load_find_distance_point
 
 
-def load_settings(page: ft.Page):
-    page.title = "Tabs Example"
+async def load_settings(page: ft.Page):
+    page.title = "Settings"
 
-    def on_tab_change(e):
+    async def on_tab_change(e):
         print('tabs.selected_index - ', tabs.selected_index)
-        tab_content.clean()
+
+        current_tab = None
         match tabs.selected_index:
             case 0:
-                tab_content.content = (ft.Text("Содержимое Вкладки 1"))
+                current_tab = (ft.Text("Содержимое Вкладки 1"))
             case 1:
-                tab_content.content = load_hsv_tab(page)
+                current_tab = await load_hsv_tab()
             case 2:
-                tab_content.content = (ft.Text("Содержимое Вкладки 3"))
-        tab_content.update()
+                current_tab = await load_find_distance_point()
+
+        settings_container.content = current_tab
+        settings_container.update()
 
     tabs = ft.Tabs(
         selected_index=0,
