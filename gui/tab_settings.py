@@ -28,19 +28,21 @@ def load_settings(page: ft.Page):
         # expand=1,
     )
 
-    tab_content = ft.Container(
+    settings_container = ft.Container(
         content=(ft.Text("Содержимое Вкладки 1")),
         # width=500,
         # height=500,
         bgcolor="red"
     )
 
-    return ft.Column(
+    tab_content = ft.Column(
         [
             tabs,
-            tab_content
+            settings_container
         ]
     )
+
+    return tab_content
 
 #     page.add(tabs, tab_content)
 #
