@@ -27,3 +27,17 @@ class GolfShot(Base):
     # Dispatch_time: Mapped[str]
     # Email: Mapped[str]
     # created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
+
+
+class HSVSetting(Base):
+    __tablename__ = 'hsv_settings'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    profile_name: Mapped[str] = mapped_column(String(length=99), nullable=False, unique=True)
+    hue_min: Mapped[int]
+    hue_max: Mapped[int]
+    saturation_min: Mapped[int]
+    saturation_max: Mapped[int]
+    value_min: Mapped[int]
+    value_max: Mapped[int]
+    is_active: Mapped[bool]
