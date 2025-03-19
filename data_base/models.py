@@ -1,5 +1,8 @@
 from datetime import datetime
+
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
+
 from .config_db import Base
 
 
@@ -40,4 +43,13 @@ class HSVSetting(Base):
     saturation_max: Mapped[int]
     value_min: Mapped[int]
     value_max: Mapped[int]
+    is_active: Mapped[bool]
+
+
+class PixelDistance(Base):
+    __tablename__ = 'pixel_distance'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    profile_name: Mapped[str] = mapped_column(String(length=99), nullable=False, unique=True)
+    pixels_per_cm: Mapped[int] = mapped_column(nullable=False)
     is_active: Mapped[bool]
