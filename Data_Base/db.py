@@ -1,11 +1,14 @@
 import logging
 from datetime import datetime
 
-from sqlalchemy import insert, select, delete, func
+from sqlalchemy import insert, select, update, delete, func
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import GolfShot
-from sqlalchemy.ext.asyncio import AsyncSession
+from .config_db import Base
+from .models import GolfShot, HSVSetting, PixelDistance
+
+logger = logging.getLogger(__name__)
 
 
 class DataBase:
@@ -48,5 +51,17 @@ class DataBase:
 
             return res.scalars().fetchall()
         except Exception as error:
-            print(f"Error occurred while reading data: {error}")
+            logger.error(f"Error occurred while reading data: {error}", exc_info=True)
+            return None
+
+    @classmethod
+    async def save_hsv_value(cls, session: AsyncSession, hsv_value: dict) -> bool:
+        try:
+            print("HSVSetting(**hsv_value) - ", HSVSetting(**hsv_value))
+            stat = insert(HSVSetting).values(**hsv_value)
+            await session.execute(stat)
+            await session.commit()
+            return True
+        except Exception as error:
+            logger.error(f"Error occurred save hsv data: {error}", exc_info=True)
             return False
