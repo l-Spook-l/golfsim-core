@@ -77,3 +77,19 @@ class DataBase:
         except Exception as error:
             logger.error(f"Error occurred save PixelDistance data: {error}", exc_info=True)
             return False
+
+    @classmethod
+    async def delete_record(cls, session: AsyncSession, model: type[Base], record_id: int):
+        """Удаляет запись из указанной модели по ID."""
+        try:
+            # query = select().filter(model.id == record_id).one()
+            # record = await session.execute(query)
+            query = delete(model).where(model.id == record_id)
+            await session.execute(query)
+            await session.commit()
+            print(f"Запись с ID {record_id} удалена из {model.__tablename__}")
+        except NoResultFound:
+            print(f"Запись с ID {record_id} не найдена в {model.__tablename__}")
+        except Exception as e:
+            await session.rollback()
+            print(f"Ошибка при удалении из {model.__tablename__}: {e}")
