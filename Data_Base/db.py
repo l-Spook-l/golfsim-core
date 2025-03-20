@@ -65,3 +65,15 @@ class DataBase:
         except Exception as error:
             logger.error(f"Error occurred save hsv data: {error}", exc_info=True)
             return False
+
+    @classmethod
+    async def save_pixel_distance(cls, session: AsyncSession, pixel_value: dict) -> bool:
+        try:
+            print("PixelDistance(**pixel_value) - ", PixelDistance(**pixel_value))
+            stat = insert(PixelDistance).values(**pixel_value)
+            await session.execute(stat)
+            await session.commit()
+            return True
+        except Exception as error:
+            logger.error(f"Error occurred save PixelDistance data: {error}", exc_info=True)
+            return False
