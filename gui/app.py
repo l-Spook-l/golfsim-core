@@ -1,7 +1,14 @@
 """ Меню слева """
 import flet as ft
-from tab_1 import load_tab_1
-from tab_2 import load_tab_2
+
+from data_base.db import DataBase
+from data_base.config_db import async_session_maker
+
+
+async def last_shot():
+    # возвращает данные о последнем выстреле (из базы данных)
+    async with async_session_maker() as session:
+        return await DataBase.get_last_shot(session=session)
 
 
 def main(page: ft.Page):
