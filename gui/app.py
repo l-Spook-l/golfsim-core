@@ -1,6 +1,9 @@
-""" Меню слева """
+import asyncio
+
 import flet as ft
 
+from .tab_home import load_home
+from .tab_settings import load_settings
 from data_base.db import DataBase
 from data_base.config_db import async_session_maker
 
@@ -11,11 +14,14 @@ async def last_shot():
         return await DataBase.get_last_shot(session=session)
 
 
-def main(page: ft.Page):
+async def main(page: ft.Page) -> None:
     # Устанавливаем размер окна и позиционируем его по центру
     page.window.width = 1800
     page.window.height = 900
     page.padding = 0
+
+    home = await load_home(page)
+    settings = await load_settings(page)
 
     # Контейнер для отображения текущего содержимого
     content_container = ft.Container(
@@ -62,5 +68,6 @@ def main(page: ft.Page):
     load_menu_content(0)
 
 
-if __name__ == "__main__":
-    ft.app(target=main)
+
+async def start_flet():
+    await ft.app_async(target=main)
