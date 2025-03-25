@@ -35,9 +35,9 @@ async def main(page: ft.Page) -> None:
         # Загрузка контента в зависимости от выбранного пункта меню
         match menu_index:
             case 0:
-                content_container.content = await load_home(page)
+                content_container.content = home
             case 1:
-                content_container.content = await load_settings(page)
+                content_container.content = settings
 
         content_container.update()
 
@@ -67,6 +67,8 @@ async def main(page: ft.Page) -> None:
     # Загружаем содержимое первого пункта меню
     load_menu_content(0)
 
+    # Загружаем содержимое первого пункта меню (Home)
+    await load_menu_content(0)
 
 
 async def start_flet():
