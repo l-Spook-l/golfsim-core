@@ -53,6 +53,23 @@ async def main(page: ft.Page) -> None:
         on_change=lambda e: load_menu_content(nav_rail.selected_index),
     )
 
+    update_navigation_rail(0)
+
+    # Функция для проверки базы данных и обновления флага
+    async def check_db_for_updates():
+        last_shot_data = await last_shot()
+        while True:
+            # Проверяем, изменились ли данные в базе
+            new_shot_data = await last_shot()
+            if new_shot_data != last_shot_data:
+                content_container.content = None
+                content_container.update()
+
+                content_container.content = await load_home(page)
+                content_container.update()
+                last_shot_data = new_shot_data  # Обновляем данные последнего выстрела
+            await asyncio.sleep(5)  # Пауза между проверками
+
     # Основная компоновка: меню слева, контент справа
     page.add(
         ft.Row(
@@ -64,8 +81,8 @@ async def main(page: ft.Page) -> None:
         )
     )
 
-    # Загружаем содержимое первого пункта меню
-    load_menu_content(0)
+    # Стартуем фоновую проверку базы данных
+    asyncio.ensure_future(check_db_for_updates())
 
     # Загружаем содержимое первого пункта меню (Home)
     await load_menu_content(0)
