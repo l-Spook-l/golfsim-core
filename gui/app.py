@@ -44,13 +44,12 @@ async def main(page: ft.Page) -> None:
         page.update()
 
     # Боковое меню
-    nav_rail = ft.NavigationRail(
+    nav = ft.NavigationRail(
         selected_index=0,
-        destinations=[
-            ft.NavigationRailDestination(icon=ft.Icons.QUERY_STATS, label="Statistic"),
-            ft.NavigationRailDestination(icon=ft.Icons.TERMINAL, label="For"),
-        ],
-        on_change=lambda e: load_menu_content(nav_rail.selected_index),
+        destinations=[],
+        on_change=on_nav_change,
+        width=100,
+        bgcolor=ft.Colors.LIGHT_GREEN_ACCENT_200
     )
 
     update_navigation_rail(0)
@@ -72,12 +71,16 @@ async def main(page: ft.Page) -> None:
 
     # Основная компоновка: меню слева, контент справа
     page.add(
-        ft.Row(
-            [
-                nav_rail,
-                content_container,
-            ],
+        ft.Container(
+            content=ft.Row(
+                [
+                    nav,
+                    ft.VerticalDivider(width=1),
+                    content_container,
+                ],
+            ),
             expand=True,
+            bgcolor=ft.Colors.BLUE_400,
         )
     )
 
