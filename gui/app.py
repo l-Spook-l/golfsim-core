@@ -41,6 +41,28 @@ async def main(page: ft.Page) -> None:
 
         content_container.update()
 
+    # Функция для обработки изменения выбранного пункта в навигации
+    async def on_nav_change(e):
+        await load_menu_content(nav.selected_index)
+        update_navigation_rail(nav.selected_index)
+
+    def update_navigation_rail(active_index):
+        """Обновляет боковое меню, делая активный пункт неактивным."""
+        nonlocal nav
+        nav.destinations = [
+            ft.NavigationRailDestination(
+                icon=ft.Icon(ft.Icons.HOME, size=30),
+                selected_icon=ft.Icon(ft.Icons.HOME, size=38),
+                label="Home",
+                disabled=active_index == 0  # Отключаем, если активен
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.Icons.SETTINGS_SUGGEST_OUTLINED,
+                label="Settings",
+                disabled=active_index == 1
+            ),
+        ]
+        page.padding = 0
         page.update()
 
     # Боковое меню
