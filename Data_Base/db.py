@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class DataBase:
+    MAX_PROFILES = 10  # Максимальное количество профилей
+
     @classmethod
     async def add_data(cls, shot_result: dict, session: AsyncSession) -> bool:
 
