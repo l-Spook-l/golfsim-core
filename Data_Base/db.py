@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config_db import Base
-from .models import GolfShot, HSVSetting, PixelDistance
+from .models import GolfShot
 
 logger = logging.getLogger(__name__)
 
@@ -55,15 +55,27 @@ class DataBase:
             return None
 
     @classmethod
-    async def save_hsv_value(cls, session: AsyncSession, hsv_value: dict) -> bool:
+    async def save_hsv_or_pixel_value(cls, session: AsyncSession, model: type[Base], value: dict) -> bool:
         try:
-            print("HSVSetting(**hsv_value) - ", HSVSetting(**hsv_value))
-            stat = insert(HSVSetting).values(**hsv_value)
+            # Проверяем, сколько уже записей в БД
+            result = await session.execute(select(model))
+            count = len(result.scalars().all())
+
+            if count >= cls.MAX_PROFILES:
+                logger.warning(f"Достигнут лимит в {cls.MAX_PROFILES} профилей {model}, запись не добавлена")
+                return False  # Отказ в добавлении
+
+            # Вставляем новую запись
+            stat = insert(model).values(**value)
             await session.execute(stat)
             await session.commit()
+
+            await cls.set_active_profile(session, model, value['profile_name'])
+
+            logger.info(f"Новая запись {model} успешно сохранена")
             return True
         except Exception as error:
-            logger.error(f"Error occurred save hsv data: {error}", exc_info=True)
+            logger.error(f"Error occurred save {model} data: {error}", exc_info=True)
             return False
 
     @classmethod
