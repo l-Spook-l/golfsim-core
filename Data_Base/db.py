@@ -79,11 +79,13 @@ class DataBase:
             return False
 
     @classmethod
-    async def save_pixel_distance(cls, session: AsyncSession, pixel_value: dict) -> bool:
+    async def set_active_profile(cls, session: AsyncSession, model: type[Base], profile_name: str) -> bool:
         try:
-            print("PixelDistance(**pixel_value) - ", PixelDistance(**pixel_value))
-            stat = insert(PixelDistance).values(**pixel_value)
-            await session.execute(stat)
+            # Сначала устанавливаем все профили как неактивные
+            await session.execute(update(model).values(is_active=False))
+            # Устанавливаем новый профиль как активный
+            await session.execute(
+                update(model).where(model.profile_name == profile_name).values(is_active=True))
             await session.commit()
             return True
         except Exception as error:
