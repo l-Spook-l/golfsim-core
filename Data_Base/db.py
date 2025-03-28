@@ -108,17 +108,18 @@ class DataBase:
             return None
 
     @classmethod
-    async def delete_record(cls, session: AsyncSession, model: type[Base], record_id: int):
+    async def delete_record(cls, session: AsyncSession, model: type[Base], record_id: int) -> bool:
         """Удаляет запись из указанной модели по ID."""
         try:
-            # query = select().filter(model.id == record_id).one()
-            # record = await session.execute(query)
             query = delete(model).where(model.id == record_id)
             await session.execute(query)
             await session.commit()
-            print(f"Запись с ID {record_id} удалена из {model.__tablename__}")
+            logger.info(f"Запись с ID {record_id} удалена из {model.__tablename__}")
+            return True
         except NoResultFound:
-            print(f"Запись с ID {record_id} не найдена в {model.__tablename__}")
+            logger.error(f"Запись с ID {record_id} не найдена в {model.__tablename__}")
+            return False
         except Exception as e:
             await session.rollback()
-            print(f"Ошибка при удалении из {model.__tablename__}: {e}")
+            logger.error(f"Ошибка при удалении из {model.__tablename__}: {e}")
+            return False
