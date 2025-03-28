@@ -98,11 +98,11 @@ class DataBase:
     async def get_active_profile(cls, session: AsyncSession, model: type[Base]):
         try:
             query = (
-                select(model).where(model.is_active is True).limit(1)
+                select(model).where(model.is_active).limit(1)
             )
             active_profile = await session.execute(query)
             logger.info(f"Получен активный профиль {model}")
-            return active_profile.scalars().fetchall()  # Вернем объект GolfShot
+            return active_profile.scalars().first()  # Вернем объект GolfShot
         except Exception as error:
             logger.error(f"Error occurred get active profile: {error}", exc_info=True)
             return None
