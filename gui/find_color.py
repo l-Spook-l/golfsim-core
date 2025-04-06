@@ -42,6 +42,16 @@ async def opencv_task(hsv_vals, image_control):
         img_bytes = BytesIO(buffer).getvalue()
         img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
+        # Проверяем, что image_control добавлен на страницу
+        #  Проверка image_control.page перед обновлением
+        # → Если image_control удалён, opencv_task не вызовет ошибку.
+        # когда переключаешь вкладки, создаётся новый image_control,
+        # а opencv_task продолжает работать со старым элементом,
+        # которого уже нет на странице. Это и вызывает ошибку
+        if image_control.page is None:
+            print("⚠️ Ошибка: image_control не добавлен на страницу, прерываем задачу.")
+            return
+
         # Обновляем изображение в Flet
         image_control.src_base64 = img_base64
         image_control.update()
