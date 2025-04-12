@@ -19,6 +19,8 @@ async def main(page: ft.Page) -> None:
     page.window.width = 1800
     page.window.height = 900
     page.padding = 0
+    # page.theme_mode = ft.ThemeMode.DARK if settings["theme"] == "dark" else ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.LIGHT
 
     home = await load_home(page)
     settings = await load_settings(page)
