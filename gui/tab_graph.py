@@ -1,3 +1,5 @@
+import os
+import json
 from datetime import datetime
 
 import flet as ft
@@ -6,6 +8,10 @@ from .tab_stat_table import load_stat_tab
 from .tab_stat_graph import load_stat_graph
 from data_base.config_db import async_session_maker
 from data_base.db import DataBase
+
+json_path = os.path.join(os.path.dirname(__file__), '../data/clubs.json')
+with open(json_path, 'r', encoding='utf-8') as file:
+    clubs_data = json.load(file)
 
 golf_list_clubs = ("All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
                    "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
@@ -26,22 +32,24 @@ def create_dropdowns(chart, page):
             show_labels=False)
         chart.update()
 
-    def dropdown_changed_unit_system(value):
-        chart.left_axis = ft.ChartAxis(
-            labels_size=50,
-            title=ft.Text(
-                f"Carry Distance ({unit_system.get(value.data).get('Distance')})", size=25),
-            title_size=50,
-        )
-
-        chart.bottom_axis = ft.ChartAxis(
-            labels_size=30,
-            labels_interval=25,
-            title=ft.Text(
-                f"Ball Speed ({unit_system.get(value.data).get('Speed')})", size=25),
-            title_size=50,
-        )
-        chart.update()
+    # def dropdown_changed_unit_system(value):
+    #     # t.value = f"Dropdown changed to {dropdown_select_unit_system.value}"
+    #
+    #     chart.left_axis = ft.ChartAxis(
+    #         labels_size=50,
+    #         title=ft.Text(
+    #             f"Carry Distance ({unit_system.get(value.data).get('Distance')})", size=25),
+    #         title_size=50,
+    #     )
+    #
+    #     chart.bottom_axis = ft.ChartAxis(
+    #         labels_size=30,
+    #         labels_interval=25,
+    #         title=ft.Text(
+    #             f"Ball Speed ({unit_system.get(value.data).get('Speed')})", size=25),
+    #         title_size=50,
+    #     )
+    #     chart.update()
 
     dropdown_select_club = ft.Dropdown(
         value=golf_list_clubs[0],  # Значение по умолчанию
@@ -52,16 +60,17 @@ def create_dropdowns(chart, page):
         width=150,
     )
 
-    dropdown_select_unit_system = ft.Dropdown(
-        value="Imperial",
-        on_change=dropdown_changed_unit_system,
-        options=[
-            ft.dropdown.Option(system) for system in unit_system.keys()
-        ],
-        width=150,
-    )
+    # dropdown_select_unit_system = ft.Dropdown(
+    #     value="Imperial",
+    #     on_change=dropdown_changed_unit_system,
+    #     options=[
+    #         ft.dropdown.Option(system) for system in unit_system.keys()
+    #     ],
+    #     width=150,
+    # )
 
-    return dropdown_select_club, dropdown_select_unit_system
+    # return dropdown_select_club, dropdown_select_unit_system
+    return dropdown_select_club
 
 
 def update_chart_data(chart, data):
@@ -104,7 +113,7 @@ def update_table_data(table, data):
 
 
 # Функция фильтрации данных
-async def create_date_filter(tab, index_tab: int, page, dropdown_select_club, dropdown_select_unit_system):
+async def create_date_filter(tab, index_tab: int, page, dropdown_select_club, dropdown_select_unit_system=None):
     start_date = ft.TextField(label="Start Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
                               text_size=18, read_only=True)
     end_date = ft.TextField(label="End Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
@@ -149,7 +158,7 @@ async def create_date_filter(tab, index_tab: int, page, dropdown_select_club, dr
         async with async_session_maker() as session:
             filtered_shots = await DataBase.get_data(session, start, end)
 
-        print('filter_data - filtered_shots', filtered_shots)
+        print('filter_data filtered_shots', filtered_shots)
         match index_tab:
             case 0:
                 update_table_data(tab, filtered_shots)
@@ -171,7 +180,7 @@ async def create_date_filter(tab, index_tab: int, page, dropdown_select_club, dr
                      ft.Row([start_date, end_date]), ]
                 ),
                 ft.Column([ft.Text("Select club", size=22), dropdown_select_club]),
-                ft.Column([ft.Text("Select unit system", size=22), dropdown_select_unit_system]),
+                # ft.Column([ft.Text("Select unit system", size=22), dropdown_select_unit_system]),
             ],
             spacing=30,
         ),
@@ -201,7 +210,8 @@ async def load_stat(page: ft.Page):
 
         # Пересоздаем фильтр, передавая текущий активный элемент
         date_filter_block.content = await create_date_filter(
-            current_tab, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
+            # current_tab, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
+            current_tab, tabs.selected_index, page, dropdown_select_club
         )
 
         date_filter_block.update()
@@ -217,6 +227,7 @@ async def load_stat(page: ft.Page):
         # expand=1,
     )
 
+
     # Оборачиваем график в контейнер для отступов
     chart_with_padding = ft.Container(
         content=table,
@@ -227,10 +238,12 @@ async def load_stat(page: ft.Page):
     )
 
     # Создаем элементы UI
-    dropdown_select_club, dropdown_select_unit_system = create_dropdowns(chart, page)
+    # dropdown_select_club, dropdown_select_unit_system = create_dropdowns(chart, page)
+    dropdown_select_club = create_dropdowns(chart, page)
 
     date_filter_block = await create_date_filter(
-        table, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
+        # table, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
+        table, tabs.selected_index, page, dropdown_select_club
     )
 
     tab_content = ft.Column(
@@ -244,4 +257,3 @@ async def load_stat(page: ft.Page):
     )
 
     return tab_content
-
