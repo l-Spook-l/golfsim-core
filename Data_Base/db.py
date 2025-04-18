@@ -5,10 +5,9 @@ from sqlalchemy import insert, select, update, delete, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .config_db import Base
-from .models import GolfShot
-
-logger = logging.getLogger(__name__)
+from data_base.config_db import Base
+from data_base.models import GolfShot
+from logging_config import logger
 
 
 class DataBase:
@@ -24,7 +23,7 @@ class DataBase:
             await session.commit()
             return True
         except Exception as error:
-            print(f"Error occurred while adding data: {error}")
+            logger.error(f"Error occurred while adding data: {error}")
             return False
 
     @classmethod
