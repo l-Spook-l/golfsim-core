@@ -1,3 +1,5 @@
+import json
+
 import flet as ft
 
 from logging_config import logger
@@ -12,6 +14,16 @@ theme_mode = ("LIGHT", "DARK")
 
 
 def dropdown_changed_unit_system(value):
+    # Шаг 1: Читаем текущие данные из файла
+    with open("Settings.json", "r") as file:
+        data = json.load(file)
+
+    # Шаг 2: Изменяем только нужное значение
+    data['units'] = value.data  # Заменяем значение для 'units'
+
+    # Шаг 3: Записываем измененные данные обратно в файл
+    with open("Settings.json", "w") as file:
+        json.dump(data, file, indent=4)  # Сохраняем файл с отступами
     logger.info(f'dropdown_changed_unit_system - value {value}')
 
 
