@@ -13,10 +13,16 @@ unit_system = {
 theme_mode = ("LIGHT", "DARK")
 
 
-def dropdown_changed_unit_system(value):
-    # Шаг 1: Читаем текущие данные из файла
-    with open("Settings.json", "r") as file:
-        data = json.load(file)
+async def load_settings():
+    # 1. Прочитать файл, если он существует
+    if os.path.exists("Settings.json"):
+        async with aiofiles.open("Settings.json", "r", encoding="utf-8") as f:
+            try:
+                data = json.loads(await f.read())
+            except json.JSONDecodeError:
+                print("⚠️ Файл пустой или повреждён. Создаём заново.")
+    return data
+
 
     # Шаг 2: Изменяем только нужное значение
     data['units'] = value.data  # Заменяем значение для 'units'
