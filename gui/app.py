@@ -3,7 +3,7 @@ import asyncio
 import flet as ft
 
 from .tab_home import load_home
-from .tab_settings import load_settings
+from .tab_settings import load_settings_tab
 from data_base.db import DataBase
 from data_base.config_db import async_session_maker
 from gui.general_settings import load_settings
@@ -26,7 +26,7 @@ async def main(page: ft.Page) -> None:
     page.theme_mode = ft.ThemeMode.DARK if theme["theme"] == "dark" else ft.ThemeMode.LIGHT
 
     home = await load_home(page)
-    settings = await load_settings(page)
+    settings = await load_settings_tab(page)
 
     # Контейнер для отображения текущего содержимого
     content_container = ft.Container(

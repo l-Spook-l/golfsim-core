@@ -3,7 +3,7 @@ from .find_color import load_hsv_tab
 from .find_point import load_find_distance_point
 
 
-async def load_settings(page: ft.Page):
+async def load_settings_tab(page: ft.Page):
     page.title = "Settings"
 
     async def on_tab_change(e):
