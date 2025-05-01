@@ -6,6 +6,7 @@ from .tab_home import load_home
 from .tab_settings import load_settings
 from data_base.db import DataBase
 from data_base.config_db import async_session_maker
+from gui.general_settings import load_settings
 
 
 async def last_shot():
@@ -19,8 +20,10 @@ async def main(page: ft.Page) -> None:
     page.window.width = 1800
     page.window.height = 900
     page.padding = 0
-    # page.theme_mode = ft.ThemeMode.DARK if settings["theme"] == "dark" else ft.ThemeMode.LIGHT
-    page.theme_mode = ft.ThemeMode.LIGHT
+
+    theme = await load_settings()
+
+    page.theme_mode = ft.ThemeMode.DARK if theme["theme"] == "dark" else ft.ThemeMode.LIGHT
 
     home = await load_home(page)
     settings = await load_settings(page)
