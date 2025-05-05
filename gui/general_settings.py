@@ -1,7 +1,8 @@
+import os
 import json
 
 import flet as ft
-
+import aiofiles
 from logging_config import logger
 
 unit_system = {
@@ -34,10 +35,11 @@ async def save_to_json(field: str, value: str, file_path: str = "Settings.json")
         await f.write(json.dumps(data, indent=4))
     logger.info(f"Тема обновлена: {value}")
 
-    # Шаг 3: Записываем измененные данные обратно в файл
-    with open("Settings.json", "w") as file:
-        json.dump(data, file, indent=4)  # Сохраняем файл с отступами
+
+async def dropdown_changed_unit_system(value):
+    units_value = value.data
     logger.info(f'dropdown_changed_unit_system - value {value}')
+    await save_to_json('units', units_value)
 
 
 def theme_changed(value):
