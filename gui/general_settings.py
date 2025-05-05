@@ -24,8 +24,15 @@ async def load_settings():
     return data
 
 
-    # Шаг 2: Изменяем только нужное значение
-    data['units'] = value.data  # Заменяем значение для 'units'
+async def save_to_json(field: str, value: str, file_path: str = "Settings.json"):
+    # 1. Прочитать файл, если он существует
+    data = await load_settings()
+    # 2. Изменяем только нужное значение
+    data[field] = value
+    # 3. Записываем измененные данные обратно в файл
+    async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
+        await f.write(json.dumps(data, indent=4))
+    logger.info(f"Тема обновлена: {value}")
 
     # Шаг 3: Записываем измененные данные обратно в файл
     with open("Settings.json", "w") as file:
