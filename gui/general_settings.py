@@ -42,9 +42,10 @@ async def dropdown_changed_unit_system(value):
     await save_to_json('units', units_value)
 
 
-def theme_changed(value):
-    logger.info(f'theme_changed - value {value}')
-
+async def theme_changed(value):
+    theme_value = "dark" if value.data == "true" else "light"
+    logger.info(f'theme_changed - value {value}, {theme_value}')
+    await save_to_json('theme', theme_value)
 
 
 async def general_set():
