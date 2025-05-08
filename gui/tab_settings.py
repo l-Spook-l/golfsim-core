@@ -1,6 +1,7 @@
 import flet as ft
-from .find_color import load_hsv_tab
-from .find_point import load_find_distance_point
+from gui.find_color import load_hsv_tab
+from gui.find_point import load_find_distance_point
+from gui.general_settings import general_set
 
 
 async def load_settings_tab(page: ft.Page):
@@ -12,7 +13,7 @@ async def load_settings_tab(page: ft.Page):
         current_tab = None
         match tabs.selected_index:
             case 0:
-                current_tab = (ft.Text("Содержимое Вкладки 1"))
+                current_tab = await general_set()
             case 1:
                 current_tab = await load_hsv_tab()
             case 2:
@@ -25,7 +26,7 @@ async def load_settings_tab(page: ft.Page):
         selected_index=0,
         on_change=on_tab_change,
         tabs=[
-            ft.Tab(text="Вкл1"),
+            ft.Tab(text="General settings"),
             ft.Tab(text="Find ball's color"),
             ft.Tab(text="Find pixel distance on screen"),
         ],
@@ -33,7 +34,7 @@ async def load_settings_tab(page: ft.Page):
     )
 
     settings_container = ft.Container(
-        content=(ft.Text("Содержимое Вкладки 1")),
+        content=await general_set(),
         # width=500,
         # height=500,
         bgcolor="red"
