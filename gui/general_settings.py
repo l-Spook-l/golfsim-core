@@ -21,7 +21,7 @@ async def load_settings():
             try:
                 data = json.loads(await f.read())
             except json.JSONDecodeError:
-                print("⚠️ Файл пустой или повреждён. Создаём заново.")
+                logger.info("⚠️ Файл пустой или повреждён. Создаём заново.")
     return data
 
 
