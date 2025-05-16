@@ -1,6 +1,6 @@
 import flet as ft
-from .tab_graph import load_stat
 
+from .tab_graph import load_stat
 from data_base.db import DataBase
 from data_base.config_db import async_session_maker
 
@@ -34,14 +34,14 @@ async def load_home(page: ft.Page):
 
     containers = []
 
-    for value in last_hit:
+    for index in range(len(last_hit)):
         row = ft.Container(
-            content=ft.Row([
-                # ft.Text(label, size=20, width=150, text_align=ft.TextAlign.LEFT),
-                ft.Text(value, size=33, width=150, text_align=ft.TextAlign.RIGHT),
+            content=ft.Column([
+                ft.Text(last_hit_title[index], size=30, width=150, text_align=ft.TextAlign.CENTER),
+                ft.Text(last_hit[index], size=42, width=150, text_align=ft.TextAlign.CENTER),
             ]),
-            padding=10,
-            bgcolor="lightblue",
+            # padding=10,
+            # bgcolor="lightblue",
             border=ft.border.all(2, "black"),
             border_radius=10,
             alignment=ft.alignment.center,
