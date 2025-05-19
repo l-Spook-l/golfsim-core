@@ -37,15 +37,15 @@ async def load_home(page: ft.Page):
     for index in range(len(last_hit)):
         row = ft.Container(
             content=ft.Column([
-                ft.Text(last_hit_title[index], size=30, width=150, text_align=ft.TextAlign.CENTER),
-                ft.Text(last_hit[index], size=42, width=150, text_align=ft.TextAlign.CENTER),
+                ft.Text(last_hit_title[index], size=35, width=180, text_align=ft.TextAlign.CENTER),
+                ft.Text(last_hit[index], size=45, width=180, text_align=ft.TextAlign.CENTER),
             ]),
-            # padding=10,
-            # bgcolor="lightblue",
+            padding=10,
+            bgcolor="lightblue",
             border=ft.border.all(2, "black"),
             border_radius=10,
             alignment=ft.alignment.center,
-            width=300,
+            width=280,
         )
         containers.append(row)
 
@@ -57,8 +57,8 @@ async def load_home(page: ft.Page):
         bgcolor="blue",
         padding=10,
         border_radius=15,
-        # width=350,
-        height=180
+        # width=300,
+        height=200
     )
 
 
