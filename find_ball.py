@@ -22,11 +22,11 @@ from config import cap
 
 # =====================================================================================================================
 
-async def add_data_db(max_speed, find_angle, distance=280):
+async def add_data_db(shot_result: dict):
     # Получаем сессию
     async with async_session_maker() as session:
         # Вызываем метод add_data с передачей сессии
-        success = await DataBase.add_data(max_speed, find_angle, distance, session=session)
+        success = await DataBase.add_data(shot_result, session=session)
         if success:
             print("Data added successfully")
         else:
