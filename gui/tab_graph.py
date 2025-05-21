@@ -113,7 +113,7 @@ def update_table_data(table, data):
 
 
 # Функция фильтрации данных
-async def create_date_filter(tab, index_tab: int, page, dropdown_select_club, dropdown_select_unit_system=None):
+async def create_filter_bar(tab, index_tab: int, page, dropdown_select_club, dropdown_select_unit_system=None):
     start_date = ft.TextField(label="Start Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
                               text_size=18, read_only=True)
     end_date = ft.TextField(label="End Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
@@ -209,7 +209,7 @@ async def load_stat(page: ft.Page):
         chart_with_padding.content = current_tab  # Меняем контент
 
         # Пересоздаем фильтр, передавая текущий активный элемент
-        date_filter_block.content = await create_date_filter(
+        date_filter_block.content = await create_filter_bar(
             # current_tab, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
             current_tab, tabs.selected_index, page, dropdown_select_club
         )
@@ -241,7 +241,7 @@ async def load_stat(page: ft.Page):
     # dropdown_select_club, dropdown_select_unit_system = create_dropdowns(chart, page)
     dropdown_select_club = create_dropdowns(chart, page)
 
-    date_filter_block = await create_date_filter(
+    date_filter_block = await create_filter_bar(
         # table, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
         table, tabs.selected_index, page, dropdown_select_club
     )
