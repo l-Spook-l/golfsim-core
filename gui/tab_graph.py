@@ -175,11 +175,13 @@ async def create_filter_bar(tab, index_tab: int, page, dropdown_select_club, dro
         content=ft.Row(
             [
                 filter_button,
-                ft.Column(
-                    [ft.Row([select_start_date, select_end_date]),
-                     ft.Row([start_date, end_date]), ]
-                ),
-                ft.Column([ft.Text("Select club", size=22), dropdown_select_club]),
+                select_start_date,
+                start_date,
+                select_end_date,
+                end_date,
+                # ft.Column([ft.Text("Select club", size=22), dropdown_select_club]),
+                # ft.Text("Select club", size=22),
+                dropdown_select_club
                 # ft.Column([ft.Text("Select unit system", size=22), dropdown_select_unit_system]),
             ],
             spacing=30,
