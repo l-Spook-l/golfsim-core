@@ -79,8 +79,7 @@ class DataBase:
     async def save_hsv_or_pixel_value(cls, session: AsyncSession, model: type[Base], value: dict) -> bool:
         try:
             # Проверяем, сколько уже записей в БД
-            result = await session.execute(select(model))
-            count = len(result.scalars().all())
+            count = await session.scalar(select(func.count()).select_from(model))
 
             if count >= cls.MAX_PROFILES:
                 logger.warning(f"Достигнут лимит в {cls.MAX_PROFILES} профилей {model}, запись не добавлена")
