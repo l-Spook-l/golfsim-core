@@ -28,14 +28,34 @@ class DataBase:
 
     @classmethod
     async def get_last_shot(cls, session: AsyncSession):
-        query = (
-            select(GolfShot.carry, GolfShot.ball_speed, GolfShot.angle_v, GolfShot.angle_h)
-            .order_by(GolfShot.date.desc())
-            .limit(1)
-        )
-        result = await session.execute(query)
-        last_shot = tuple(str(item) for item in result.fetchone())
-        return last_shot  # Вернем объект GolfShot
+        try:
+            query = (
+                select(GolfShot.carry, GolfShot.ball_speed, GolfShot.angle_v, GolfShot.angle_h)
+                .order_by(GolfShot.date.desc())
+                .limit(1)
+            )
+            result = await session.execute(query)
+            # result = await session.execute(query.order_by(GolfShot.id.desc()).limit(1))
+            # result = await session.execute(
+            #     select(GolfShot).order_by(GolfShot.id.desc()).limit(1)  # Сортируем по id
+            # )
+            # last_shot = result.scalars().first()  # Получаем объект
+            last_shot = tuple(str(item) for item in result.fetchone())
+            return last_shot  # Вернем объект GolfShot
+        except Exception as error:
+            logger.error(f"Error occurred while reading last data: {error}", exc_info=True)
+            return None
+
+    @classmethod
+    async def get_first_shot(cls, session: AsyncSession):
+        try:
+            result = await session.execute(
+                select(GolfShot).order_by(GolfShot.date.asc()).limit(1)
+            )
+            return result.scalars().first()
+        except Exception as error:
+            logger.error(f"Error occurred while reading first shot: {error}", exc_info=True)
+            return None
 
     @classmethod
     async def get_data(cls, session: AsyncSession, start_date: datetime = None, end_date: datetime = None):
