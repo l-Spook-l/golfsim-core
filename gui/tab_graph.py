@@ -29,7 +29,7 @@ async def get_first_shot_date():
         return first_shot.date if first_shot else datetime.now()
 
 
-def create_dropdowns(chart, page):
+def create_dropdown(chart, page):
     def dropdown_changed_club(value):
         page.defer_update = True  # Отключаем авто обновление временно
         chart.top_axis = ft.ChartAxis(
@@ -247,7 +247,7 @@ async def load_stat(page: ft.Page):
 
     # Создаем элементы UI
     # dropdown_select_club, dropdown_select_unit_system = create_dropdowns(chart, page)
-    dropdown_select_club = create_dropdowns(chart, page)
+    dropdown_select_club = create_dropdown(chart, page)
 
     date_filter_block = await create_filter_bar(
         # table, tabs.selected_index, page, dropdown_select_club, dropdown_select_unit_system
