@@ -23,6 +23,12 @@ unit_system = {
 }
 
 
+async def get_first_shot_date():
+    async with async_session_maker() as session:
+        first_shot = await DataBase.get_first_shot(session)
+        return first_shot.date if first_shot else datetime.now()
+
+
 def create_dropdowns(chart, page):
     def dropdown_changed_club(value):
         page.defer_update = True  # Отключаем авто обновление временно
