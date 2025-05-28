@@ -63,7 +63,21 @@ def create_dropdown(chart, page):
         options=[
             ft.dropdown.Option(club) for club in golf_list_clubs
         ],
-        width=150,
+        width=200,
+    )
+
+    dropdown_sort = ft.Dropdown(
+        label="Sort by",
+        value="ball_speed_desc",  # значение по умолчанию
+        options=[
+            ft.dropdown.Option("date_desc", "Date ↓"),
+            ft.dropdown.Option("date_asc", "Date ↑"),
+            ft.dropdown.Option("carry_desc", "Carry ↓"),
+            ft.dropdown.Option("carry_asc", "Carry ↑"),
+            ft.dropdown.Option("ball_speed_desc", "Ball Speed ↓"),
+            ft.dropdown.Option("ball_speed_asc", "Ball Speed ↑"),
+        ],
+        width=120
     )
 
     # dropdown_select_unit_system = ft.Dropdown(
