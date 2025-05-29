@@ -133,11 +133,26 @@ def update_table_data(table, data):
 
 
 # Функция фильтрации данных
-async def create_filter_bar(tab, index_tab: int, page, dropdown_select_club, dropdown_select_unit_system=None):
-    start_date = ft.TextField(label="Start Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
-                              text_size=18, read_only=True)
-    end_date = ft.TextField(label="End Date (YYYY-MM-DD)", value=datetime.now().strftime('%Y-%m-%d'), width=180,
-                            text_size=18, read_only=True)
+async def create_filter_bar(tab, index_tab: int, page, dropdown_select_club, dropdown_sort):
+    first_date = await get_first_shot_date()
+    first_str = first_date.strftime('%Y-%m-%d')
+    now_str = datetime.now().strftime('%Y-%m-%d')
+
+    start_date = ft.TextField(
+        label="Start Date",
+        value=first_str,
+        width=150,
+        text_size=16,
+        read_only=True
+    )
+
+    end_date = ft.TextField(
+        label="End Date",
+        value=now_str,
+        width=150,
+        text_size=16,
+        read_only=True
+    )
 
     def handle_change_start(e):
         start_date.value = e.control.value.strftime('%Y-%m-%d')
