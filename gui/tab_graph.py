@@ -77,7 +77,7 @@ def create_dropdown(chart, page):
             ft.dropdown.Option("ball_speed_desc", "Ball Speed ↓"),
             ft.dropdown.Option("ball_speed_asc", "Ball Speed ↑"),
         ],
-        width=120
+        width=180
     )
 
     # dropdown_select_unit_system = ft.Dropdown(
