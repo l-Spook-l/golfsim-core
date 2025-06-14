@@ -16,6 +16,7 @@ async def last_shot():
 
 
 async def main(page: ft.Page) -> None:
+    page.title = "GolfMonitor"
     # Устанавливаем размер окна и позиционируем его по центру
     page.window.width = 1800
     page.window.height = 900
