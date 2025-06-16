@@ -77,7 +77,13 @@ async def main(page: ft.Page) -> None:
         destinations=[],
         on_change=on_nav_change,
         width=100,
+        height=200,
         bgcolor=ft.Colors.LIGHT_GREEN_ACCENT_200
+    )
+    button_exit_app = ft.IconButton(
+        icon=ft.Icons.EXIT_TO_APP,
+        on_click=lambda e: page.window.destroy(),
+        icon_size=30
     )
 
     update_navigation_rail(0)
@@ -102,7 +108,14 @@ async def main(page: ft.Page) -> None:
         ft.Container(
             content=ft.Row(
                 [
-                    nav,
+                    ft.Column(
+                        [
+                            nav,
+                            button_exit_app
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                    ),
                     ft.VerticalDivider(width=1),
                     content_container,
                 ],
