@@ -42,6 +42,12 @@ async def load_home(page: ft.Page):
 
     carry, ball_speed, angle_v, angle_h = last_hit
 
+    golf_clubs = await clubs_info()
+    active_club = {
+        "name": golf_clubs[0]["name"],
+        "image": golf_clubs[0]["image"]
+    }
+
     print('last_hit', last_hit)
     print('carry, ball_speed, angle_v, angle_h', carry, ball_speed, angle_v, angle_h)
 
@@ -69,7 +75,13 @@ async def load_home(page: ft.Page):
         containers.append(row)
 
     def selected_club(club):
-        print(f'Вы выбрали: {club["name"]}')
+        active_club = club["name"]
+        active_club["image"] = club["image"]
+        button.content = ft.Column([
+            ft.Text(club.get("name"), size=20),
+            ft.Image(src=club.get("image"), width=80, height=80),
+        ])
+        page.update()
         page.close(dlg_modal)
 
     # Создание диалога с кнопками
@@ -83,14 +95,14 @@ async def load_home(page: ft.Page):
                         width=150,
                         height=120,
                         content=ft.Column([
-                            ft.Text(club["name"], size=18),
+                            ft.Text(club["name"], size=18, text_align=ft.TextAlign.CENTER),
                             ft.Image(src=club["image"], width=75, height=75),
                         ], spacing=5),
                         on_click=lambda e, club=club: selected_club(club)
                     )
-                    for club in GOLF_CLUBS[i:i + 4]  # Берем 3 элемента на каждый ряд
+                    for club in golf_clubs[i:i + 4]  # Берем 3 элемента на каждый ряд
                 ])
-                for i in range(0, len(GOLF_CLUBS), 4)  # Делим на группы по 3 элемента
+                for i in range(0, len(golf_clubs), 4)  # Делим на группы по 3 элемента
             ]),
             height=400,
             bgcolor=ft.Colors.BLUE,
@@ -107,8 +119,8 @@ async def load_home(page: ft.Page):
         width=200,
         # height=200,
         content=ft.Column([
-            ft.Text(GOLF_CLUBS[0]["name"], size=20),
-            ft.Image(src=GOLF_CLUBS[0]["image"], width=80, height=80),
+            ft.Text(active_club.get("name"), size=20),
+            ft.Image(src=active_club.get("image"), width=80, height=80),
         ], spacing=10),
         # on_click=tess
         on_click=lambda e: page.open(dlg_modal)
