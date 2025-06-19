@@ -75,7 +75,7 @@ async def load_home(page: ft.Page):
         containers.append(row)
 
     def selected_club(club):
-        active_club = club["name"]
+        active_club["name"] = club["name"]
         active_club["image"] = club["image"]
         button.content = ft.Column([
             ft.Text(club.get("name"), size=20),
