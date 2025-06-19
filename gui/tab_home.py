@@ -1,3 +1,6 @@
+import os
+import json
+
 import flet as ft
 
 from .tab_graph import load_stat
@@ -5,6 +8,22 @@ from data_base.db import DataBase
 from data_base.config_db import async_session_maker
 
 last_hit_title = ("Carry (yd)", "Ball (mph)", "Launch V ", "Launch H ")
+
+
+async def clubs_info() -> dict:
+    data = {}  # значение по умолчанию
+
+    if os.path.exists("data/clubs.json"):
+        with open("data/clubs.json", "r", encoding="utf-8") as f:
+            try:
+                data = json.load(f)['clubs']
+            except json.JSONDecodeError:
+                logger.info("⚠️ Файл повреждён. Создаём заново.")
+
+    logger.info(f'path - {os.path.exists("settings.json")}')
+    logger.info(f'data - {data}')
+
+    return data
 
 
 async def last_shot():
