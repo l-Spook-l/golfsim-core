@@ -1,9 +1,13 @@
 import flet as ft
 
+from gui.drive_range_section import load_drive_range_section
+
 
 async def load_home(page: ft.Page) -> ft.Container:
 
     current_view = ft.Container()
+
+    drive_range = await load_drive_range_section(page)
 
     def build_card(route_target: str, image_url: str) -> ft.Container:
         return ft.Container(
@@ -24,12 +28,12 @@ async def load_home(page: ft.Page) -> ft.Container:
         current_view.content = home
         current_view.update()
 
-    async def update_view(route: str):
+    def update_view(route: str):
         match route:
             case "/drive-range":
                 current_view.content = ft.Column([
                     ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: show_home()),
-                    ft.Text("🏌️ Drive Range view", size=30)
+                    drive_range
                 ])
             case "/putting":
                 current_view.content = ft.Column([
