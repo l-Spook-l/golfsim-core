@@ -62,4 +62,4 @@ async def main(page: ft.Page) -> None:
 
 
 async def start_flet():
-    await ft.app_async(target=main)
+    await ft.app_async(target=main, assets_dir="assets")
