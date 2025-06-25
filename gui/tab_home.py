@@ -28,11 +28,19 @@ async def load_home(page: ft.Page) -> ft.Container:
         current_view.content = home
         current_view.update()
 
+    def header_selected_section(section):
+        return ft.Container(
+            content=ft.Text(section, size=28, weight=ft.FontWeight.BOLD),
+        )
+
     def update_view(route: str):
         match route:
             case "/drive-range":
                 current_view.content = ft.Column([
+                    ft.Row([
                         button_return_home,
+                        header_selected_section("Drive range")
+                    ]),
                     drive_range
                 ])
             case "/putting":
