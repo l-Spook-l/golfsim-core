@@ -4,7 +4,6 @@ from gui.drive_range_section import load_drive_range_section
 
 
 async def load_home(page: ft.Page) -> ft.Container:
-
     current_view = ft.Container()
 
     drive_range = await load_drive_range_section(page)
@@ -23,6 +22,7 @@ async def load_home(page: ft.Page) -> ft.Container:
             ink=True,
             on_click=lambda e: update_view(route_target)
         )
+    button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: show_home())
 
     def show_home():
         current_view.content = home
@@ -32,17 +32,17 @@ async def load_home(page: ft.Page) -> ft.Container:
         match route:
             case "/drive-range":
                 current_view.content = ft.Column([
-                    ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: show_home()),
+                        button_return_home,
                     drive_range
                 ])
             case "/putting":
                 current_view.content = ft.Column([
-                    ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: show_home()),
+                    button_return_home,
                     ft.Text("🎯 Putting view", size=30)
                 ])
             case "/play-course":
                 current_view.content = ft.Column([
-                    ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: show_home()),
+                    button_return_home,
                     ft.Text("⛳ Play Course view", size=30)
                 ])
         current_view.update()
