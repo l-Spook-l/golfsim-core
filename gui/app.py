@@ -5,7 +5,7 @@ from .tab_settings import load_settings_tab
 from data_base.db import DataBase
 from data_base.config_db import async_session_maker
 
-from gui.tab_home import load_home
+from gui.tab_home import HomeView
 from gui.tab_settings import load_settings_tab
 from gui.general_settings import load_settings
 
@@ -28,7 +28,9 @@ async def main(page: ft.Page) -> None:
     theme = await load_settings()
     page.theme_mode = ft.ThemeMode.DARK if theme["theme"] == "dark" else ft.ThemeMode.LIGHT
 
-    home = await load_home(page)
+    home_view = HomeView(page)
+    home = await home_view.init()
+
     settings = await load_settings_tab(page)
 
     tabs = ft.Tabs(

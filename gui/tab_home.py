@@ -1,37 +1,91 @@
+import asyncio
+
 import flet as ft
 
 from gui.drive_range_section import load_drive_range_section
+from logging_config import logger
+from data_base.db import DataBase
+from data_base.config_db import async_session_maker
 
 
-async def load_home(page: ft.Page) -> ft.Container:
-    current_view = ft.Container()
+class HomeView:
+    def __init__(self, page: ft.Page):
+        self.page = page
+        self.home = ft.Container()
+        self.current_section = ft.Container()
+        self.current_section_name = {"name": ""}
+        self.latest_shot_data = None
+        self.drive_range = None
 
-    drive_range = await load_drive_range_section(page)
+    async def init(self) -> ft.Container:
+        # self.latest_shot_data = await DataBase.get_last_shot(session=async_session_maker())
+        self.latest_shot_data = await self.last_shot()
+        self.drive_range = await load_drive_range_section(self.page, self.latest_shot_data)
 
-    def build_card(route_target: str, image_url: str) -> ft.Container:
-        return ft.Container(
-            content=ft.Image(
-                src=image_url,
-                fit=ft.ImageFit.COVER,
-                border_radius=ft.border_radius.all(8),
+        self.home = ft.Container(
+            content=ft.Row(
+                controls=[
+                    self.build_card("drive-range", "menu/drive-range.png"),
+                    self.build_card("putting", "menu/putting.png"),
+                    self.build_card("play-course", "menu/play-course.png"),
+                ],
+                expand=True,
+                spacing=0
             ),
+            expand=True
+        )
+
+        self.current_section.content = self.home
+        asyncio.ensure_future(self.check_db_updates())
+        return self.current_section
+
+    def build_card(self, section_name, image_url):
+        return ft.Container(
+            content=ft.Image(src=image_url, fit=ft.ImageFit.COVER, border_radius=ft.border_radius.all(8)),
             alignment=ft.alignment.center,
-            bgcolor=ft.Colors.BLUE_100,
             expand=True,
             margin=10,
             ink=True,
-            on_click=lambda e: update_view(route_target)
+            on_click=lambda e: self.update_section(section_name)
         )
-    button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: show_home())
 
-    def show_home():
-        current_view.content = home
-        current_view.update()
+    def update_section(self, section: str):
+        self.current_section_name["name"] = section
+        match section:
+            case "drive-range":
+                self.current_section.content = ft.Column([
+                    ft.Text("🏌️ Drive range view"),
+                    self.drive_range
+                ])
+            case "putting":
+                self.current_section.content = ft.Column([ft.Text("🎯 Putting view")])
+            case "play-course":
+                self.current_section.content = ft.Column([ft.Text("⛳ Play Course view")])
+        self.current_section.update()
 
-    def header_selected_section(section):
-        return ft.Container(
-            content=ft.Text(section, size=28, weight=ft.FontWeight.BOLD),
-        )
+    def show_home(self):
+        self.current_section.content = self.home
+        self.current_section.update()
+
+    @classmethod
+    async def last_shot(cls):
+        """Returns data about the last shot (from the database)"""
+        async with async_session_maker() as session:
+            return await DataBase.get_last_shot(session=session)
+
+    async def check_db_updates(self):
+        last_data = self.latest_shot_data
+        while True:
+            await asyncio.sleep(5)
+            async with async_session_maker() as session:
+                new_data = await DataBase.get_last_shot(session=session)
+                if new_data != last_data:
+                    logger.info("New shot detected, refreshing section")
+                    self.latest_shot_data = new_data
+                    self.drive_range = await load_drive_range_section(self.page, new_data)
+                    if self.current_section_name["name"] == "drive-range":
+                        self.update_section("drive-range")
+                    last_data = new_data
 
     def update_view(route: str):
         match route:
