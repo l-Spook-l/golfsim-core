@@ -1,51 +1,58 @@
+import asyncio
+
 import flet as ft
+
 from gui.find_color import load_hsv_tab
 from gui.find_point import load_find_distance_point
 from gui.general_settings import general_set
 
 
-async def load_settings_tab(page: ft.Page):
-    page.title = "Settings"
+class SettingsView:
+    def __init__(self):
+        self.tabs = ft.Tabs()
+        self.content_container = ft.Container()
+        self.settings = ft.Container()
+        self.current_tab = None
 
-    async def on_tab_change(e):
-        print('tabs.selected_index - ', tabs.selected_index)
-
-        current_tab = None
-        match tabs.selected_index:
+    async def on_tab_change(self, e):
+        match self.tabs.selected_index:
             case 0:
-                current_tab = await general_set()
+                self.current_tab = await general_set()
             case 1:
-                current_tab = await load_hsv_tab()
+                self.current_tab = await load_hsv_tab()
             case 2:
-                current_tab = await load_find_distance_point()
+                self.current_tab = await load_find_distance_point()
 
-        settings_container.content = current_tab
-        settings_container.update()
+        self.content_container.content = self.current_tab
+        self.content_container.update()
 
-    tabs = ft.Tabs(
-        selected_index=0,
-        on_change=on_tab_change,
-        tabs=[
-            ft.Tab(text="General settings"),
-            ft.Tab(text="Find ball's color"),
-            ft.Tab(text="Find pixel distance on screen"),
-        ],
-        # expand=1,
-    )
+    async def init(self) -> ft.Container:
+        self.tabs = ft.Tabs(
+            selected_index=0,
+            on_change=lambda e: asyncio.create_task(self.on_tab_change(e)),
+            tabs=[
+                ft.Tab(text="General settings"),
+                ft.Tab(text="Find ball's color"),
+                ft.Tab(text="Find pixel distance on screen"),
+            ],
+        )
 
-    settings_container = ft.Container(
-        content=await general_set(),
-        # width=500,
-        # height=500,
-        bgcolor="red"
-    )
+        self.content_container = ft.Container(
+            content=await general_set(),
+            # width=500,
+            # height=500,
+            bgcolor="red"
+        )
 
-    tab_content = ft.Column(
-        [
-            tabs,
-            settings_container
-        ]
-    )
+        self.settings = ft.Container(
+            content=ft.Column(
+                [
+                    self.tabs,
+                    self.content_container
+                ]
+            )
+        )
+        return self.settings
 
     return tab_content
 

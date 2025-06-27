@@ -31,7 +31,8 @@ async def main(page: ft.Page) -> None:
     home_view = HomeView(page)
     home = await home_view.init()
 
-    settings = await load_settings_tab(page)
+    settings_view = SettingsView()  # создаёшь объект
+    settings = await settings_view.init()  # получаешь визуальный элемент (Container)
 
     tabs = ft.Tabs(
         selected_index=0,
