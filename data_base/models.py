@@ -10,6 +10,7 @@ class GolfShot(Base):
     __tablename__ = 'user_settings_table'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    club: Mapped[str] = mapped_column(String(length=25), nullable=True)
     ball_speed: Mapped[float] = mapped_column(nullable=False, default=0.0)
     angle_v: Mapped[float] = mapped_column(nullable=False, default=0.0)
     angle_h: Mapped[float] = mapped_column(nullable=False, default=0.0)
