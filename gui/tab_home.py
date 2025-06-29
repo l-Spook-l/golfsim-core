@@ -16,6 +16,7 @@ class HomeView:
         self.current_section_name = {"name": ""}
         self.latest_shot_data = None
         self.drive_range = None
+        self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.show_home())
 
     async def init(self) -> ft.Container:
         # self.latest_shot_data = await DataBase.get_last_shot(session=async_session_maker())
@@ -54,13 +55,26 @@ class HomeView:
         match section:
             case "drive-range":
                 self.current_section.content = ft.Column([
-                    ft.Text("🏌️ Drive range view"),
+                    ft.Row([
+                        self.button_return_home,
+                        ft.Text("Drive range", size=28, weight=ft.FontWeight.BOLD)
+                    ]),
                     self.drive_range
                 ])
             case "putting":
-                self.current_section.content = ft.Column([ft.Text("🎯 Putting view")])
+                self.current_section.content = ft.Column([
+                    ft.Row([
+                        self.button_return_home,
+                        ft.Text("🎯 Putting view")
+                    ]),
+                ])
             case "play-course":
-                self.current_section.content = ft.Column([ft.Text("⛳ Play Course view")])
+                self.current_section.content = ft.Column([
+                    ft.Row([
+                        self.button_return_home,
+                        ft.Text("⛳ Play Course view")
+                    ]),
+                ])
         self.current_section.update()
 
     def show_home(self):
