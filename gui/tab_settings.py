@@ -1,5 +1,3 @@
-import asyncio
-
 import flet as ft
 
 from gui.find_color import load_hsv_tab
@@ -29,7 +27,7 @@ class SettingsView:
     async def init(self) -> ft.Container:
         self.tabs = ft.Tabs(
             selected_index=0,
-            on_change=lambda e: asyncio.create_task(self.on_tab_change(e)),
+            on_change=self.on_tab_change,
             tabs=[
                 ft.Tab(text="General settings"),
                 ft.Tab(text="Find ball's color"),
