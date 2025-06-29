@@ -91,15 +91,15 @@ class HomeView:
         last_data = self.latest_shot_data
         while True:
             await asyncio.sleep(5)
-            async with async_session_maker() as session:
-                new_data = await DataBase.get_last_shot(session=session)
-                if new_data != last_data:
-                    logger.info("New shot detected, refreshing section")
-                    self.latest_shot_data = new_data
-                    self.drive_range = await load_drive_range_section(self.page, new_data)
-                    if self.current_section_name["name"] == "drive-range":
-                        self.update_section("drive-range")
-                    last_data = new_data
+            new_shot_data = await self.last_shot()
+            if new_shot_data != last_data:
+                logger.info("New shot detected, refreshing section")
+                self.latest_shot_data = new_shot_data
+                self.drive_range = await load_drive_range_section(self.page, new_shot_data)
+                if self.current_section_name["name"] == "drive-range":
+                    self.update_section("drive-range")
+                last_data = new_shot_data
+
 
     def update_view(route: str):
         match route:
