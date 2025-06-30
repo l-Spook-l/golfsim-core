@@ -11,6 +11,7 @@ async def load_data() -> list:
         data = [
             [
                 str(golf_shot.id),
+                str(golf_shot.club),
                 str(golf_shot.ball_speed),
                 str(golf_shot.angle_v),
                 str(golf_shot.angle_h),
@@ -32,26 +33,47 @@ async def load_stat_tab():
 
     # Заголовки столбцов
     headers = (
-        "N", "Ball (mph)", "Launch V (deg)", "Launch H (deg)", "Carry (yd)", "Roll (yd)", "Total (yd)", "Lateral (yd)",
-        "Spin (rpm)", "Date"
+        "N", "Club", "Ball\n(mph)", "Launch V\n(deg)", "Launch H\n(deg)", "Carry\n(yd)", "Roll\n(yd)", "Total\n(yd)",
+        "Lateral\n(yd)", "Spin\n(rpm)", "Date"
     )
 
     data = await load_data()
 
     # Создание таблицы
-    table = ft.DataTable(
-        # width=700,
-        # height=500,
-        bgcolor="yellow",
-        border=ft.border.all(2, "red"),
-        border_radius=10,
-        columns=[ft.DataColumn(ft.Text(header, size=19, text_align=ft.TextAlign.CENTER, width=95)) for header in
-                 headers],
-        rows=[
-            ft.DataRow(
-                cells=[ft.DataCell(ft.Text(cell, size=18, text_align=ft.TextAlign.CENTER, width=95)) for cell in row])
-            for row in data
-        ]
-    )
 
-    return table
+    table_header = ft.Row([
+        ft.Container(
+            content=ft.Text(header, size=19, text_align=ft.TextAlign.CENTER),
+            # alignment=ft.alignment.center,
+            width=95,
+            bgcolor="orange"
+        )
+        for header in headers
+    ])
+
+    table_body = ft.Column([
+        ft.Row(
+            [
+                ft.Container(
+                    content=ft.Text(cell, size=18, text_align=ft.TextAlign.CENTER),
+                    # alignment=ft.alignment.center,
+                    width=95
+                )
+                for cell in row
+            ]
+        )
+        for row in data
+    ])
+
+    return ft.Container(
+        content=ft.Column([
+            table_header,
+            ft.Column(
+                controls=[table_body],
+                height=450,
+                scroll=ft.ScrollMode.ALWAYS  # заставляет колонку прокручиваться
+            )
+        ]),
+        border=ft.border.all(1, "grey"),
+        border_radius=10,
+    )
