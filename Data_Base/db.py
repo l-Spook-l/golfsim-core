@@ -47,10 +47,10 @@ class DataBase:
             return None
 
     @classmethod
-    async def get_first_shot(cls, session: AsyncSession):
+    async def get_first_shot_date(cls, session: AsyncSession):
         try:
             result = await session.execute(
-                select(GolfShot).order_by(GolfShot.date.asc()).limit(1)
+                select(GolfShot.date).order_by(GolfShot.date.asc()).limit(1)
             )
             return result.scalars().first()
         except Exception as error:

@@ -25,8 +25,8 @@ unit_system = {
 
 async def get_first_shot_date():
     async with async_session_maker() as session:
-        first_shot = await DataBase.get_first_shot(session)
-        return first_shot.date if first_shot else datetime.now()
+        date = await DataBase.get_first_shot_date(session)
+        return date or datetime.now()
 
 
 def create_dropdown(chart, page):
