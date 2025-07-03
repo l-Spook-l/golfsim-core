@@ -30,17 +30,13 @@ class FolderWatcher:
             # Обновляем список обработанных файлов
             self.processed_files = current_files
 
-
-async def check_folder_main():
-    watcher = FolderWatcher("folder_test_all_open")
-    print(f"Отслеживание папки: {watcher.directory}")
-
-    # цикл проверки
-    while True:
-        await watcher.check_for_new_files()
-        print('check_folder_main')
-        await asyncio.sleep(1)
+    async def check_folder(self):
+        logger(f"Отслеживание папки: {self.directory}")
+        while True:
+            await self.check_new_files()
+            await asyncio.sleep(1)
 
 
 if __name__ == "__main__":
-    asyncio.run(check_folder_main())
+    check_folder = FolderWatcher()
+    asyncio.run(check_folder.check_folder())
