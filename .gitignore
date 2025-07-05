@@ -4,6 +4,17 @@ venv
 video_distance_50cm
 video_speed_ball_patt_50cm
 video_test
+video_dnerp
+flet_tests
+new_test_videos
 videos
 web_cam
 .env
+Test_list
+golf_info
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
