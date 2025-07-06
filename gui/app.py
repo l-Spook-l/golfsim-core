@@ -1,28 +1,21 @@
 import flet as ft
 
-from .tab_home import load_home
-from .tab_settings import load_settings_tab
-from data_base.db import DataBase
-from data_base.config_db import async_session_maker
-
 from gui.tab_home import HomeView
-from gui.tab_settings import load_settings_tab
+from gui.tab_settings import SettingsView
 from gui.general_settings import load_settings
-
-
-async def last_shot():
-    # возвращает данные о последнем выстреле (из базы данных)
-    async with async_session_maker() as session:
-        return await DataBase.get_last_shot(session=session)
 
 
 async def main(page: ft.Page) -> None:
     page.title = "GolfSim"
+
+    page.window.maximized = True
+
     # Устанавливаем размер окна и позиционируем его по центру
     page.window.width = 1700
     page.window.height = 900
     page.window.min_width = 680  # Минимальная ширина окна
     page.window.min_height = 420  # Минимальная высота окна
+    page.bgcolor = "#F4F4F6"
     page.padding = 0
 
     theme = await load_settings()
@@ -36,19 +29,15 @@ async def main(page: ft.Page) -> None:
 
     tabs = ft.Tabs(
         selected_index=0,
-        animation_duration=300,
+        animation_duration=500,
         tabs=[
             ft.Tab(
                 icon=ft.Icon(ft.Icons.HOME, size=35),
-                content=ft.Container(
-                    content=home
-                ),
+                content=home,
             ),
             ft.Tab(
                 icon=ft.Icon(ft.Icons.SETTINGS, size=35),
-                content=ft.Container(
-                    content=settings
-                ),
+                content=settings,
             ),
         ],
         tab_alignment=ft.TabAlignment.CENTER,
