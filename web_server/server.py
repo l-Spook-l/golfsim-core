@@ -5,8 +5,12 @@ import aiofiles
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .find_local_ip import get_local_ip as local_ip
-
+from web_server.find_local_ip import get_local_ip as local_ip
+from data_base.config_db import async_session_maker
+from data_base.db import DataBase
+from data_base.models import HSVSetting
+from data_base.schemas import HSVSettingSchema
+from logging_config import logger
 
 app = FastAPI()
 
@@ -73,8 +77,12 @@ hsv_state = {"hsv_vals": {}}
 
 
 @app.get("/get-hsv")
-async def get_hsv():
-    return {"hsv_vals": hsv_state}
+async def get_hsv() -> dict:
+    async with async_session_maker() as session:
+        data = await DataBase.get_active_profile(session, HSVSetting)
+        logger.info(f"Data active_hsv - {data}")
+    hsv_schema = HSVSettingSchema.model_validate(data)
+    return {"hsv_vals": hsv_schema.model_dump()}
 
 
 @app.post("/update-hsv")
