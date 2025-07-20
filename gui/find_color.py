@@ -28,7 +28,8 @@ class FindBallByColor:
             data = await DataBase.get_active_profile(session, HSVSetting)
             logger.info(f"Data active_hsv - {data.id}")
 
-    async def add_hsv_value(self, hsv_value: dict):
+    @staticmethod
+    async def store_hsv_settings(hsv_value: dict):
         # Получаем сессию
         logger.info('add_hsv_value -- hsv_value - ', hsv_value)
         mapping = {
@@ -66,7 +67,7 @@ class FindBallByColor:
         self.img_color = cv2.rotate(self.img_color, cv2.ROTATE_90_COUNTERCLOCKWISE)
         return self.img_color
 
-    async def opencv_task(self, hsv_vals, image_control):
+    async def update_image_with_hsv(self, hsv_vals, image_control):
         """Асинхронная задача для обновления изображения."""
         self.stop_event.clear()  # Разрешаем выполнение цикла
 
@@ -94,10 +95,10 @@ class FindBallByColor:
 
             await asyncio.sleep(0.05)  # Даем небольшую паузу, чтобы снизить нагрузку
 
-    async def save_hsv_values(self, _):
+    async def save_and_send_hsv_values(self, _):
         """Сохраняет HSV-значения и отправляет на сервер."""
+        await self.store_hsv_settings(self.hsv_vals)
         logger.info("Сохраненные значения HSV:", self.hsv_vals)
-        await self.add_hsv_value(self.hsv_vals)
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -165,7 +166,7 @@ class FindBallByColor:
             hmax, hmax_text,
             smax, smax_text,
             vmax, vmax_text,
-            save_button,
+            save_profile_button ,
         ])
 
         # Контроль для отображения изображения
@@ -187,6 +188,6 @@ class FindBallByColor:
 
         # **Запускаем новую асинхронную задачу**
         self.stop_event.clear()  # Разрешаем новый запуск
-        self.active_task = asyncio.create_task(self.opencv_task(self.hsv_vals, self.image_control))
+        self.active_task = asyncio.create_task(self.update_image_with_hsv(self.hsv_vals, self.image_control))
 
         return self.tab_content
