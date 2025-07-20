@@ -8,136 +8,185 @@ import cv2
 import flet as ft
 from cvzone.ColorModule import ColorFinder
 
-# Глобальная переменная для управления задачами
-active_task = None
-stop_event = asyncio.Event()
+from data_base.config_db import async_session_maker
+from data_base.db import DataBase
+from data_base.models import HSVSetting
+from logging_config import logger
 
 
-async def process_image(hsv_vals, image_path="images/golf_ball_50cm_240FPS_light.png"):
-    """Обрабатывает изображение и возвращает цветовую маску."""
-    if not os.path.exists(image_path):
-        raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
+class FindBallByColor:
+    def __init__(self):
+        self.active_task = None
+        self.stop_event = asyncio.Event()
+        self.hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 255, 'smax': 255, 'vmax': 255}
+        self.img_color = None
+        self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
+        self.tab_content = ft.Row()
 
-    img = cv2.imread(image_path)
-    if img is None:
-        raise ValueError(f"Не удалось загрузить изображение: {image_path}")
+    async def get_active_hsv_profile(self):
+        async with async_session_maker() as session:
+            data = await DataBase.get_active_profile(session, HSVSetting)
+            logger.info(f"Data active_hsv - {data.id}")
 
-    img = img[200:700, :]  # Обрезаем изображение
-    color_finder = ColorFinder(False)
-    img_color, _ = color_finder.update(img, hsv_vals)
+    async def add_hsv_value(self, hsv_value: dict):
+        # Получаем сессию
+        logger.info('add_hsv_value -- hsv_value - ', hsv_value)
+        mapping = {
+            "hmin": "hue_min",
+            "hmax": "hue_max",
+            "smin": "saturation_min",
+            "smax": "saturation_max",
+            "vmin": "value_min",
+            "vmax": "value_max",
+        }
+        mapped_data = {mapping[k]: v for k, v in hsv_value.items()}
+        mapped_data['profile_name'] = 'test115'
+        # mapped_data['is_active'] = True
 
-    return img_color
+        async with async_session_maker() as session:
+            success = await DataBase.save_hsv_or_pixel_value(session, HSVSetting, mapped_data)
+            if success:
+                logger.info("Data added successfully")
+            else:
+                logger.info("Failed to add data")
 
+    async def process_image(self, hsv_vals):
+        image_path = "folder_test_all_open/photo.jpg"
+        """Обрабатывает изображение и возвращает цветовую маску."""
+        if not os.path.exists(image_path):
+            raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
 
-async def opencv_task(hsv_vals, image_control):
-    """Асинхронная задача для обновления изображения."""
-    global stop_event
-    stop_event.clear()  # Разрешаем выполнение цикла
+        img = cv2.imread(image_path)
+        if img is None:
+            raise ValueError(f"Не удалось загрузить изображение: {image_path}")
 
-    while not stop_event.is_set():
-        img_color = await process_image(hsv_vals)
+        # img = img[200:700, :]  # Обрезаем изображение
+        color_finder = ColorFinder(False)
+        self.img_color, _ = color_finder.update(img, hsv_vals)
+        self.img_color = cv2.rotate(self.img_color, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        return self.img_color
 
-        # Преобразуем изображение в base64
-        _, buffer = cv2.imencode('.jpg', img_color)
-        img_bytes = BytesIO(buffer).getvalue()
-        img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+    async def opencv_task(self, hsv_vals, image_control):
+        """Асинхронная задача для обновления изображения."""
+        self.stop_event.clear()  # Разрешаем выполнение цикла
 
-        # Проверяем, что image_control добавлен на страницу
-        #  Проверка image_control.page перед обновлением
-        # → Если image_control удалён, opencv_task не вызовет ошибку.
-        # когда переключаешь вкладки, создаётся новый image_control,
-        # а opencv_task продолжает работать со старым элементом,
-        # которого уже нет на странице. Это и вызывает ошибку
-        if image_control.page is None:
-            print("⚠️ Ошибка: image_control не добавлен на страницу, прерываем задачу.")
-            return
+        while not self.stop_event.is_set():
+            img_color = await self.process_image(hsv_vals)
 
-        # Обновляем изображение в Flet
-        image_control.src_base64 = img_base64
-        image_control.update()
+            # Преобразуем изображение в base64
+            _, buffer = cv2.imencode('.jpg', img_color)
+            img_bytes = BytesIO(buffer).getvalue()
+            img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
-        await asyncio.sleep(0.05)  # Даем небольшую паузу, чтобы снизить нагрузку
+            # Проверяем, что image_control добавлен на страницу
+            #  Проверка image_control.page перед обновлением
+            # → Если image_control удалён, opencv_task не вызовет ошибку.
+            # когда переключаешь вкладки, создаётся новый image_control,
+            # а opencv_task продолжает работать со старым элементом,
+            # которого уже нет на странице. Это и вызывает ошибку
+            if image_control.page is None:
+                logger.error("⚠️ Ошибка: image_control не добавлен на страницу, прерываем задачу.")
+                return
 
+            # Обновляем изображение в Flet
+            image_control.src_base64 = img_base64
+            image_control.update()
 
-async def load_hsv_tab():
-    """Загружает вкладку HSV-настроек и управляет асинхронной задачей."""
-    global active_task, stop_event
+            await asyncio.sleep(0.05)  # Даем небольшую паузу, чтобы снизить нагрузку
 
-    hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 175, 'smax': 255, 'vmax': 255}
-
-    def update_hsv(_):
-        hsv_vals.update({
-            'hmin': int(hmin.value),
-            'smin': int(smin.value),
-            'vmin': int(vmin.value),
-            'hmax': int(hmax.value),
-            'smax': int(smax.value),
-            'vmax': int(vmax.value),
-        })
-
-        # Обновление текста значений
-        hmin_text.value = f"Hue Min: {hsv_vals['hmin']}"
-        smin_text.value = f"Saturation Min: {hsv_vals['smin']}"
-        vmin_text.value = f"Value Min: {hsv_vals['vmin']}"
-        hmax_text.value = f"Hue Max: {hsv_vals['hmax']}"
-        smax_text.value = f"Saturation Max: {hsv_vals['smax']}"
-        vmax_text.value = f"Value Max: {hsv_vals['vmax']}"
-
-        tab_content.update()
-
-    async def save_hsv_values(_):
+    async def save_hsv_values(self, _):
         """Сохраняет HSV-значения и отправляет на сервер."""
-        print("Сохраненные значения HSV:", hsv_vals)
+        logger.info("Сохраненные значения HSV:", self.hsv_vals)
+        await self.add_hsv_value(self.hsv_vals)
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "http://192.168.50.107:8000/update-hsv",  # URL вашего сервера
-                    json={"hsv_vals": hsv_vals}  # Данные для отправки
+                    "http://192.168.50.107:7878/update-hsv",  # URL вашего сервера
+                    json={"hsv_vals": self.hsv_vals}  # Данные для отправки
                 )
                 if response.status_code == 200:
-                    print("Успешно отправлено на сервер:", response.json())
+                    logger.info("Успешно отправлено на сервер:", response.json())
                 else:
-                    print("Ошибка при отправке на сервер:", response.text)
+                    logger.info("Ошибка при отправке на сервер:", response.text)
         except Exception as e:
-            print(f"Ошибка при отправке данных: {e}")
+            logger.info(f"Ошибка при отправке данных: {e}")
 
-    # Ползунки HSV
-    hmin, smin, vmin = [ft.Slider(min=0, max=255, value=hsv_vals[key], label=key, on_change=update_hsv) for key in
-                        ['hmin', 'smin', 'vmin']]
-    hmax, smax, vmax = [ft.Slider(min=0, max=255, value=hsv_vals[key], label=key, on_change=update_hsv) for key in
-                        ['hmax', 'smax', 'vmax']]
+    async def load_hsv_tab(self):
+        """Загружает вкладку HSV-настроек и управляет асинхронной задачей."""
+        def update_hsv(_):
+            self.hsv_vals.update({
+                'hmin': int(hmin.value),
+                'smin': int(smin.value),
+                'vmin': int(vmin.value),
+                'hmax': int(hmax.value),
+                'smax': int(smax.value),
+                'vmax': int(vmax.value),
+            })
 
-    hmin_text, smin_text, vmin_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmin', 'smin', 'vmin']]
-    hmax_text, smax_text, vmax_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmax', 'smax', 'vmax']]
+            # Обновление текста значений
+            hmin_text.value = f"Hue Min: {self.hsv_vals['hmin']}"
+            smin_text.value = f"Saturation Min: {self.hsv_vals['smin']}"
+            vmin_text.value = f"Value Min: {self.hsv_vals['vmin']}"
+            hmax_text.value = f"Hue Max: {self.hsv_vals['hmax']}"
+            smax_text.value = f"Saturation Max: {self.hsv_vals['smax']}"
+            vmax_text.value = f"Value Max: {self.hsv_vals['vmax']}"
 
-    save_button = ft.ElevatedButton(text="Сохранить значения HSV", on_click=save_hsv_values)
+            self.tab_content.update()
 
-    controls_column = ft.Column([
-        ft.Text("Настройка параметров HSV:"),
-        hmin, hmin_text,
-        smin, smin_text,
-        vmin, vmin_text,
-        hmax, hmax_text,
-        smax, smax_text,
-        vmax, vmax_text,
-        save_button,
-    ])
+        # Ползунки HSV
+        hmin, smin, vmin = [ft.Slider(min=0, max=255, value=self.hsv_vals[key], label=key, on_change=update_hsv) for key in
+                            ['hmin', 'smin', 'vmin']]
+        hmax, smax, vmax = [ft.Slider(min=0, max=255, value=self.hsv_vals[key], label=key, on_change=update_hsv) for key in
+                            ['hmax', 'smax', 'vmax']]
 
-    # Контроль для отображения изображения
-    image_control = ft.Image(width=500, height=300, fit=ft.ImageFit.CONTAIN)
+        # hmin_text, smin_text, vmin_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmin', 'smin', 'vmin']]
+        # hmax_text, smax_text, vmax_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmax', 'smax', 'vmax']]
+        hmin_text = ft.Text(f"Hue Min: {self.hsv_vals['hmin']}")
+        smin_text = ft.Text(f"Saturation Min: {self.hsv_vals['smin']}")
+        vmin_text = ft.Text(f"Value Min: {self.hsv_vals['vmin']}")
+        hmax_text = ft.Text(f"Hue Max: {self.hsv_vals['hmax']}")
+        smax_text = ft.Text(f"Saturation Max: {self.hsv_vals['smax']}")
+        vmax_text = ft.Text(f"Value Max: {self.hsv_vals['vmax']}")
 
-    tab_content = ft.Row([
-        ft.Container(content=controls_column, bgcolor=ft.Colors.BROWN_600),
-        ft.Container(content=image_control, bgcolor=ft.Colors.LIGHT_GREEN),
-    ])
+        active_profile_info = ft.Container(
+            content=await self.get_active_hsv_profile(),
+            bgcolor=ft.Colors.YELLOW_800,
+            height=100,
+            width=500
+        )
 
-    # **ОСТАНАВЛИВАЕМ старую асинхронную задачу, если она уже работает**
-    if active_task is not None:
-        stop_event.set()  # Останавливаем цикл в `opencv_task`
-        await active_task  # Ждем завершения задачи
+        save_button = ft.ElevatedButton(text="Сохранить значения HSV", on_click=self.save_hsv_values)
 
-    # **Запускаем новую асинхронную задачу**
-    stop_event.clear()  # Разрешаем новый запуск
-    active_task = asyncio.create_task(opencv_task(hsv_vals, image_control))
+        controls_column = ft.Column([
+            ft.Text("Настройка параметров HSV:"),
+            hmin, hmin_text,
+            smin, smin_text,
+            vmin, vmin_text,
+            hmax, hmax_text,
+            smax, smax_text,
+            vmax, vmax_text,
+            save_button,
+        ])
 
-    return tab_content
+        # Контроль для отображения изображения
+        # self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
+
+        self.tab_content = ft.Row([
+            # active_profile_info,
+            ft.Container(content=controls_column, bgcolor=ft.Colors.GREEN_400, padding=10),
+            ft.Container(content=self.image_control, bgcolor=ft.Colors.GREY_400),
+        ])
+
+        # **ОСТАНАВЛИВАЕМ старую асинхронную задачу, если она уже работает**
+        if self.active_task is not None:
+            self.stop_event.set()  # Останавливаем цикл в `opencv_task`
+            try:
+                await self.active_task  # Дожидаемся завершения задачи
+            except asyncio.CancelledError:
+                logger.info("Предыдущая задача OpenCV успешно остановлена.")
+
+        # **Запускаем новую асинхронную задачу**
+        self.stop_event.clear()  # Разрешаем новый запуск
+        self.active_task = asyncio.create_task(self.opencv_task(self.hsv_vals, self.image_control))
+
+        return self.tab_content
