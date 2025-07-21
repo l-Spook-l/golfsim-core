@@ -29,7 +29,7 @@ class FindBallByColor:
             logger.info(f"Data active_hsv - {data.id}")
 
     @staticmethod
-    async def store_hsv_settings(hsv_value: dict):
+    async def store_hsv_settings(hsv_value: dict, profile_name: str):
         # Получаем сессию
         logger.info('add_hsv_value -- hsv_value - ', hsv_value)
         mapping = {
@@ -41,7 +41,7 @@ class FindBallByColor:
             "vmax": "value_max",
         }
         mapped_data = {mapping[k]: v for k, v in hsv_value.items()}
-        mapped_data['profile_name'] = 'test115'
+        mapped_data['profile_name'] = profile_name
         # mapped_data['is_active'] = True
 
         async with async_session_maker() as session:
@@ -156,9 +156,17 @@ class FindBallByColor:
             width=500
         )
 
-        save_button = ft.ElevatedButton(text="Сохранить значения HSV", on_click=self.save_hsv_values)
+        async def handle_save_button_click(e):
+            await self.store_hsv_settings(self.hsv_vals, profile_name_field.value)
+
+        profile_name_field = ft.TextField(label="Profile name", width=200)
+        save_profile_button = ft.ElevatedButton(
+            text="Сохранить значения HSV",
+            on_click=handle_save_button_click  # e - необходимо для работы
+        )
 
         controls_column = ft.Column([
+            profile_name_field,
             ft.Text("Настройка параметров HSV:"),
             hmin, hmin_text,
             smin, smin_text,
@@ -166,7 +174,7 @@ class FindBallByColor:
             hmax, hmax_text,
             smax, smax_text,
             vmax, vmax_text,
-            save_profile_button ,
+            save_profile_button,
         ])
 
         # Контроль для отображения изображения
