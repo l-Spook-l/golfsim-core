@@ -1,6 +1,5 @@
 import base64
 import os
-import httpx
 import asyncio
 from io import BytesIO
 
@@ -94,23 +93,6 @@ class FindBallByColor:
             image_control.update()
 
             await asyncio.sleep(0.05)  # Даем небольшую паузу, чтобы снизить нагрузку
-
-    async def save_and_send_hsv_values(self, _):
-        """Сохраняет HSV-значения и отправляет на сервер."""
-        await self.store_hsv_settings(self.hsv_vals)
-        logger.info("Сохраненные значения HSV:", self.hsv_vals)
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "http://192.168.50.107:7878/update-hsv",  # URL вашего сервера
-                    json={"hsv_vals": self.hsv_vals}  # Данные для отправки
-                )
-                if response.status_code == 200:
-                    logger.info("Успешно отправлено на сервер:", response.json())
-                else:
-                    logger.info("Ошибка при отправке на сервер:", response.text)
-        except Exception as e:
-            logger.info(f"Ошибка при отправке данных: {e}")
 
     async def load_hsv_tab(self):
         """Загружает вкладку HSV-настроек и управляет асинхронной задачей."""
