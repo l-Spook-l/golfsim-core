@@ -84,7 +84,7 @@ class DataBase:
 
             if count >= cls.MAX_PROFILES:
                 logger.warning(f"Profile limit of {cls.MAX_PROFILES} reached for {model}, record not added")
-                raise ProfileLimitReachedError
+                raise ProfileLimitReachedError()
 
             # Вставляем новую запись
             stat = insert(model).values(**value)
@@ -97,7 +97,7 @@ class DataBase:
         except ProfileLimitReachedError:
             raise
         except IntegrityError:
-            raise ProfileNameAlreadyExistsError
+            raise ProfileNameAlreadyExistsError()
         except Exception as error:
             logger.error(f"Error occurred save {model} data: {error}", exc_info=True)
             return False
