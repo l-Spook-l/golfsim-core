@@ -10,6 +10,7 @@ from cvzone.ColorModule import ColorFinder
 from data_base.config_db import async_session_maker
 from data_base.db import DataBase
 from data_base.models import HSVSetting
+from exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
 from logging_config import logger
 
 
@@ -20,15 +21,16 @@ class FindBallByColor:
         self.hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 255, 'smax': 255, 'vmax': 255}
         self.img_color = None
         self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
+        self.controls_column = ft.Column()
         self.tab_content = ft.Row()
+        self.error_text = ft.Text("", color=ft.Colors.RED, size=12, visible=False)
 
     async def get_active_hsv_profile(self):
         async with async_session_maker() as session:
             data = await DataBase.get_active_profile(session, HSVSetting)
             logger.info(f"Data active_hsv - {data.id}")
 
-    @staticmethod
-    async def save_hsv_values(hsv_value: dict, profile_name: str):
+    async def save_hsv_values(self, hsv_value: dict, profile_name: str):
         # Получаем сессию
         logger.info('add_hsv_value -- hsv_value - ', hsv_value)
         mapping = {
@@ -43,12 +45,21 @@ class FindBallByColor:
         mapped_data['profile_name'] = profile_name
         # mapped_data['is_active'] = True
 
-        async with async_session_maker() as session:
-            success = await DataBase.save_hsv_or_pixel_value(session, HSVSetting, mapped_data)
-            if success:
-                logger.info("Data added successfully")
-            else:
-                logger.info("Failed to add data")
+        try:
+            async with async_session_maker() as session:
+                success = await DataBase.save_hsv_or_pixel_value(session, HSVSetting, mapped_data)
+                if success:
+                    logger.info("Data added successfully")
+                else:
+                    logger.info("Failed to add data")
+            self.error_text.visible = False
+        except ProfileNameAlreadyExistsError:
+            self.error_text.value = "A profile with this name already exists"
+            self.error_text.visible = True
+        except ProfileLimitReachedError:
+            self.error_text.value = "You have reached the maximum number of profiles allowed"
+            self.error_text.visible = True
+        self.controls_column.update()
 
     async def process_image(self, hsv_vals):
         image_path = "folder_test_all_open/photo.jpg"
@@ -96,6 +107,7 @@ class FindBallByColor:
 
     async def load_hsv_tab(self):
         """Загружает вкладку HSV-настроек и управляет асинхронной задачей."""
+
         def update_hsv(_):
             self.hsv_vals.update({
                 'hmin': int(hmin.value),
@@ -149,6 +161,7 @@ class FindBallByColor:
 
         controls_column = ft.Column([
             profile_name_field,
+            self.error_text,
             ft.Text("Настройка параметров HSV:"),
             hmin, hmin_text,
             smin, smin_text,
@@ -164,7 +177,7 @@ class FindBallByColor:
 
         self.tab_content = ft.Row([
             # active_profile_info,
-            ft.Container(content=controls_column, bgcolor=ft.Colors.GREEN_400, padding=10),
+            ft.Container(content=self.controls_column, bgcolor=ft.Colors.GREEN_400, padding=10),
             ft.Container(content=self.image_control, bgcolor=ft.Colors.GREY_400),
         ])
 
