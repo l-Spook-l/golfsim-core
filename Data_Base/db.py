@@ -2,12 +2,13 @@ import logging
 from datetime import datetime
 
 from sqlalchemy import insert, select, update, delete, func
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data_base.config_db import Base
 from data_base.models import GolfShot
 from logging_config import logger
+from exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
 
 
 class DataBase:
@@ -82,18 +83,21 @@ class DataBase:
             count = await session.scalar(select(func.count()).select_from(model))
 
             if count >= cls.MAX_PROFILES:
-                logger.warning(f"Достигнут лимит в {cls.MAX_PROFILES} профилей {model}, запись не добавлена")
-                return False  # Отказ в добавлении
+                logger.warning(f"Profile limit of {cls.MAX_PROFILES} reached for {model}, record not added")
+                raise ProfileLimitReachedError
 
             # Вставляем новую запись
             stat = insert(model).values(**value)
             await session.execute(stat)
             await session.commit()
-
             await cls.set_active_profile(session, model, value['profile_name'])
 
-            logger.info(f"Новая запись {model} успешно сохранена")
+            logger.info(f"New {model} record saved successfully")
             return True
+        except ProfileLimitReachedError:
+            raise
+        except IntegrityError:
+            raise ProfileNameAlreadyExistsError
         except Exception as error:
             logger.error(f"Error occurred save {model} data: {error}", exc_info=True)
             return False
