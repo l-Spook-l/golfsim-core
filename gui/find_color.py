@@ -7,6 +7,7 @@ import cv2
 import flet as ft
 from cvzone.ColorModule import ColorFinder
 
+from gui.app_context import AppContext
 from data_base.config_db import async_session_maker
 from data_base.db import DataBase
 from data_base.models import HSVSetting
@@ -16,6 +17,7 @@ from logging_config import logger
 
 class FindBallByColor:
     def __init__(self):
+        self.page = AppContext.get_page()
         self.active_task = None
         self.stop_event = asyncio.Event()
         self.hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 255, 'smax': 255, 'vmax': 255}
@@ -23,7 +25,15 @@ class FindBallByColor:
         self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
         self.controls_column = ft.Column()
         self.tab_content = ft.Row()
-        self.error_text = ft.Text("", color=ft.Colors.RED, size=12, visible=False)
+
+    def show_snackbar(self, message: str, status: str):
+        self.page.open(
+            ft.SnackBar(
+                ft.Text(f"{message}"),
+                bgcolor=ft.Colors.GREEN_ACCENT_700 if status == "success" else ft.Colors.RED_ACCENT_700
+            )
+        )
+        self.page.update()
 
     async def get_active_hsv_profile(self):
         async with async_session_maker() as session:
@@ -50,15 +60,14 @@ class FindBallByColor:
                 success = await DataBase.save_hsv_or_pixel_value(session, HSVSetting, mapped_data)
                 if success:
                     logger.info("Data added successfully")
+                    self.show_snackbar("HSV settings have been successfully saved", "success")
                 else:
                     logger.info("Failed to add data")
-            self.error_text.visible = False
         except ProfileNameAlreadyExistsError:
-            self.error_text.value = "A profile with this name already exists"
-            self.error_text.visible = True
+            self.show_snackbar("A profile with this name already exists", "error")
         except ProfileLimitReachedError:
-            self.error_text.value = "You have reached the maximum number of profiles allowed"
-            self.error_text.visible = True
+            self.show_snackbar("You have reached the maximum number of profiles allowed", "error")
+
         self.controls_column.update()
 
     async def process_image(self, hsv_vals):
