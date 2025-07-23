@@ -3,13 +3,14 @@ import json
 
 import flet as ft
 
+from gui.app_context import AppContext
 from gui.tab_graph import load_stat
 from logging_config import logger
 
 
 class DriveRangeSection:
-    def __init__(self, page: ft.Page, last_shot: list):
-        self.page = page
+    def __init__(self, last_shot: list):
+        self.page = AppContext.get_page()
         self.last_shot = last_shot
         self.active_club = {"name": "", "image": ""}
         self.golf_clubs = []

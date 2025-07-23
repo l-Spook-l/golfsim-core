@@ -1,11 +1,13 @@
 import flet as ft
 
+from gui.app_context import AppContext
 from gui.tab_home import HomeView
 from gui.tab_settings import SettingsView
 from gui.general_settings import load_settings
 
 
 async def main(page: ft.Page) -> None:
+    AppContext.set_page(page)
     page.title = "GolfSim"
 
     page.window.maximized = True
@@ -21,8 +23,8 @@ async def main(page: ft.Page) -> None:
     theme = await load_settings()
     page.theme_mode = ft.ThemeMode.DARK if theme["theme"] == "dark" else ft.ThemeMode.LIGHT
 
-    home_view = HomeView(page)
-    home = await home_view.init()
+    home_view = HomeView()
+    home = await home_view.init()  # получаешь визуальный элемент (Container)
 
     settings_view = SettingsView()  # создаёшь объект
     settings = await settings_view.init()  # получаешь визуальный элемент (Container)

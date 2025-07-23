@@ -9,19 +9,19 @@ from data_base.config_db import async_session_maker
 
 
 class HomeView:
-    def __init__(self, page: ft.Page):
-        self.page = page
+    def __init__(self):
         self.home = ft.Container()
         self.current_section = ft.Container()
         self.current_section_name = {"name": ""}
         self.latest_shot_data = None
-        self.drive_range = None
+        self.drive_range_section = None
         self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.show_home())
 
     async def init(self) -> ft.Container:
         # self.latest_shot_data = await DataBase.get_last_shot(session=async_session_maker())
         self.latest_shot_data = await self.last_shot()
-        self.drive_range = await load_drive_range_section(self.page, self.latest_shot_data)
+        load_drive_range_section = DriveRangeSection(self.latest_shot_data)
+        self.drive_range_section = await load_drive_range_section.build_section()
 
         self.home = ft.Container(
             content=ft.Row(
@@ -59,7 +59,7 @@ class HomeView:
                         self.button_return_home,
                         ft.Text("Drive range", size=28, weight=ft.FontWeight.BOLD)
                     ]),
-                    self.drive_range
+                    self.drive_range_section
                 ])
             case "putting":
                 self.current_section.content = ft.Column([
@@ -95,7 +95,7 @@ class HomeView:
             if new_shot_data != last_data:
                 logger.info("New shot detected, refreshing section")
                 self.latest_shot_data = new_shot_data
-                self.drive_range = await load_drive_range_section(self.page, new_shot_data)
+                self.drive_range_section = await DriveRangeSection(new_shot_data).build_section()
                 if self.current_section_name["name"] == "drive-range":
                     self.update_section("drive-range")
                 last_data = new_shot_data
