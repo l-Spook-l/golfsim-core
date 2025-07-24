@@ -74,11 +74,11 @@ class FindBallByColor:
         image_path = "folder_test_all_open/photo.jpg"
         """Обрабатывает изображение и возвращает цветовую маску."""
         if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
+            raise FileNotFoundError(f"Image file not found: {image_path}")
 
         img = cv2.imread(image_path)
         if img is None:
-            raise ValueError(f"Не удалось загрузить изображение: {image_path}")
+            raise ValueError(f"Failed to load image: {image_path}")
 
         # img = img[200:700, :]  # Обрезаем изображение
         color_finder = ColorFinder(False)
@@ -105,7 +105,7 @@ class FindBallByColor:
             # а opencv_task продолжает работать со старым элементом,
             # которого уже нет на странице. Это и вызывает ошибку
             if image_control.page is None:
-                logger.error("⚠️ Ошибка: image_control не добавлен на страницу, прерываем задачу.")
+                logger.error("Error: image_control was not added to the page. Aborting the task")
                 return
 
             # Обновляем изображение в Flet
@@ -138,10 +138,16 @@ class FindBallByColor:
             self.tab_content.update()
 
         # Ползунки HSV
-        hmin, smin, vmin = [ft.Slider(min=0, max=255, value=self.hsv_vals[key], label=key, on_change=update_hsv) for key in
-                            ['hmin', 'smin', 'vmin']]
-        hmax, smax, vmax = [ft.Slider(min=0, max=255, value=self.hsv_vals[key], label=key, on_change=update_hsv) for key in
-                            ['hmax', 'smax', 'vmax']]
+        hmin, smin, vmin = [ft.Slider(min=0, max=255, value=self.hsv_vals[key],
+                                      label=key,
+                                      on_change=update_hsv,
+                                      inactive_color=ft.Colors.GREY)
+                            for key in ['hmin', 'smin', 'vmin']]
+        hmax, smax, vmax = [ft.Slider(min=0, max=255, value=self.hsv_vals[key],
+                                      label=key,
+                                      on_change=update_hsv,
+                                      inactive_color=ft.Colors.GREY)
+                            for key in ['hmax', 'smax', 'vmax']]
 
         # hmin_text, smin_text, vmin_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmin', 'smin', 'vmin']]
         # hmax_text, smax_text, vmax_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmax', 'smax', 'vmax']]
@@ -186,8 +192,8 @@ class FindBallByColor:
 
         self.tab_content = ft.Row([
             # active_profile_info,
-            ft.Container(content=self.controls_column, bgcolor=ft.Colors.GREEN_400, padding=10),
-            ft.Container(content=self.image_control, bgcolor=ft.Colors.GREY_400),
+            ft.Container(content=self.controls_column, bgcolor="#E4E7EB", padding=10, margin=5, border_radius=10),
+            ft.Container(content=self.image_control, bgcolor="#E4E7EB", padding=10, border_radius=10),
         ])
 
         # **ОСТАНАВЛИВАЕМ старую асинхронную задачу, если она уже работает**
@@ -196,7 +202,7 @@ class FindBallByColor:
             try:
                 await self.active_task  # Дожидаемся завершения задачи
             except asyncio.CancelledError:
-                logger.info("Предыдущая задача OpenCV успешно остановлена.")
+                logger.info("The previous OpenCV process has been successfully stopped")
 
         # **Запускаем новую асинхронную задачу**
         self.stop_event.clear()  # Разрешаем новый запуск
