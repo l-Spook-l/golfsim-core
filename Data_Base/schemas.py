@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class HSVSettingSchema(BaseModel):
-    profile_name: str
+    profile_name: str = Field(max_length=15, description="Profile name (maximum 15 characters)")
     hue_min: int
     hue_max: int
     saturation_min: int

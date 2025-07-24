@@ -168,13 +168,17 @@ class FindBallByColor:
         async def handle_save_button_click(e):
             await self.save_hsv_values(self.hsv_vals, profile_name_field.value)
 
-        profile_name_field = ft.TextField(label="Profile name", width=200)
+        profile_name_field = ft.TextField(
+            label="Profile name",
+            width=200,
+            max_length=15,
+        )
         save_profile_button = ft.ElevatedButton(
-            text="Сохранить значения HSV",
-            on_click=handle_save_button_click  # e - необходимо для работы
+            text="Save HSV values",
+            on_click=handle_save_button_click
         )
 
-        controls_column = ft.Column([
+        self.controls_column = ft.Column([
             profile_name_field,
             self.error_text,
             ft.Text("Настройка параметров HSV:"),
