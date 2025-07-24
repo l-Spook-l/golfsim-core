@@ -180,14 +180,13 @@ class FindBallByColor:
 
         self.controls_column = ft.Column([
             profile_name_field,
-            self.error_text,
-            ft.Text("Настройка параметров HSV:"),
-            hmin, hmin_text,
-            smin, smin_text,
-            vmin, vmin_text,
-            hmax, hmax_text,
-            smax, smax_text,
-            vmax, vmax_text,
+            ft.Text("HSV parameter settings:"),
+            hmin_text, hmin,
+            smin_text, smin,
+            vmin_text, vmin,
+            hmax_text, hmax,
+            smax_text, smax,
+            vmax_text, vmax,
             save_profile_button,
         ])
 
