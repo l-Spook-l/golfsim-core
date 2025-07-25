@@ -1,8 +1,8 @@
 import flet as ft
 
-from gui.find_color import load_hsv_tab
+from gui.find_color import FindBallByColor
 from gui.find_point import load_find_distance_point
-from gui.general_settings import general_set
+from gui.general_settings import GeneralSettings
 
 
 class SettingsView:
@@ -11,13 +11,15 @@ class SettingsView:
         self.content_container = ft.Container()
         self.settings = ft.Container()
         self.current_tab = None
+        self.load_drive_range_section = FindBallByColor()
+        self.load_general_settings_section = GeneralSettings()
 
     async def on_tab_change(self, e):
         match self.tabs.selected_index:
             case 0:
-                self.current_tab = await general_set()
+                self.current_tab = await self.load_general_settings_section.build_section()
             case 1:
-                self.current_tab = await load_hsv_tab()
+                self.current_tab = await self.load_drive_range_section.build_section()
             case 2:
                 self.current_tab = await load_find_distance_point()
 
@@ -36,7 +38,7 @@ class SettingsView:
         )
 
         self.content_container = ft.Container(
-            content=await general_set(),
+            content=await self.load_general_settings_section.build_section(),
             # width=500,
             # height=500,
             bgcolor="red"
