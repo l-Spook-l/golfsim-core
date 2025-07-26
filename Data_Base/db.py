@@ -1,147 +1,184 @@
-import logging
 from datetime import datetime
+from typing import Type
 
 from sqlalchemy import insert, select, update, delete, func
-from sqlalchemy.exc import NoResultFound, IntegrityError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data_base.config_db import Base
-from data_base.models import GolfShot
+from data_base.models import GolfShot, HSVSetting, PixelDistance
 from logging_config import logger
 from exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
 
 
-class DataBase:
-    MAX_PROFILES = 10  # Максимальное количество профилей
+class BaseRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self.MAX_PROFILES = 10
 
-    @classmethod
-    async def add_data(cls, shot_result: dict, session: AsyncSession) -> bool:
-
+    async def delete_by_id(self, model: Type[Base], obj_id):
         try:
-            print("dqweqweqw", GolfShot(**shot_result))
-            stat = insert(GolfShot).values(**shot_result)
-            await session.execute(stat)
-            await session.commit()
+            query = delete(model).where(model.id == obj_id)
+            await self.session.execute(query)
+            await self.session.commit()
+            return True
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Ошибка при удалении из  {e}")
+            return False
+
+
+class GolfShotRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session)
+
+    async def add_new_shot(self, shot_result: dict):
+        try:
+            new_data = insert(GolfShot).values(**shot_result)
+            await self.session.execute(new_data)
+            await self.session.commit()
             return True
         except Exception as error:
+            await self.session.rollback()
             logger.error(f"Error occurred while adding data: {error}")
             return False
 
-    @classmethod
-    async def get_last_shot(cls, session: AsyncSession):
+    async def get_all_shots(self, start_date: datetime = None, end_date: datetime = None):
+        try:
+            query = select(GolfShot)
+            if start_date and end_date:
+                query = query.where(GolfShot.date >= start_date, GolfShot.date <= end_date)
+
+            query = query.order_by(GolfShot.date.desc())
+            # TODO: add filter by name golf_club
+            # if golf_club:
+            #     query = query.filter(GolfShot.golf_club.ilike(golf_club_name))
+            result = await self.session.execute(query)
+            return result.scalars().fetchall()
+        except Exception as error:
+            logger.error(f"Error occurred while reading data: {error}", exc_info=True)
+            return []
+
+    async def get_last_shot(self):
         try:
             query = (
                 select(GolfShot.carry, GolfShot.ball_speed, GolfShot.angle_v, GolfShot.angle_h)
                 .order_by(GolfShot.date.desc())
                 .limit(1)
             )
-            result = await session.execute(query)
-            # result = await session.execute(query.order_by(GolfShot.id.desc()).limit(1))
-            # result = await session.execute(
-            #     select(GolfShot).order_by(GolfShot.id.desc()).limit(1)  # Сортируем по id
-            # )
-            # last_shot = result.scalars().first()  # Получаем объект
-            last_shot = tuple(str(item) for item in result.fetchone())
-            return last_shot  # Вернем объект GolfShot
+            result = await self.session.execute(query)
+            last_shot = result.mappings().fetchone()
+            return last_shot
         except Exception as error:
             logger.error(f"Error occurred while reading last data: {error}", exc_info=True)
             return None
 
-    @classmethod
-    async def get_first_shot_date(cls, session: AsyncSession):
+    async def get_first_shot_date(self):
         try:
-            result = await session.execute(
-                select(GolfShot.date).order_by(GolfShot.date.asc()).limit(1)
-            )
+            query = select(GolfShot.date).order_by(GolfShot.date.asc()).limit(1)
+            result = await self.session.execute(query)
             return result.scalars().first()
         except Exception as error:
             logger.error(f"Error occurred while reading first shot: {error}", exc_info=True)
             return None
 
-    @classmethod
-    async def get_data(cls, session: AsyncSession, start_date: datetime = None, end_date: datetime = None):
-        # golf_club_name = f"%{golf_club_name}%"
-        # golf_club_name, limit
+
+class HSVSettingRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session)
+
+    async def add_new_hsv_set(self, data: dict):
         try:
-            query = select(GolfShot)
-
-            if start_date and end_date:
-                query = query.where(GolfShot.date >= start_date, GolfShot.date <= end_date)
-
-            query = query.order_by(GolfShot.date.desc())
-            res = await session.execute(query)
-
-            return res.scalars().fetchall()
-        except Exception as error:
-            logger.error(f"Error occurred while reading data: {error}", exc_info=True)
-            return None
-
-    @classmethod
-    async def save_hsv_or_pixel_value(cls, session: AsyncSession, model: type[Base], value: dict) -> bool:
-        try:
-            # Проверяем, сколько уже записей в БД
-            count = await session.scalar(select(func.count()).select_from(model))
-
-            if count >= cls.MAX_PROFILES:
-                logger.warning(f"Profile limit of {cls.MAX_PROFILES} reached for {model}, record not added")
+            count_records = await self.session.scalar(select(func.count()).select_from(HSVSetting))
+            if count_records >= self.MAX_PROFILES:
+                logger.warning(f"Profile limit of {self.MAX_PROFILES} reached for HSVSetting, record not added")
                 raise ProfileLimitReachedError()
 
-            # Вставляем новую запись
-            stat = insert(model).values(**value)
-            await session.execute(stat)
-            await session.commit()
-            await cls.set_active_profile(session, model, value['profile_name'])
-
-            logger.info(f"New {model} record saved successfully")
+            stat = insert(HSVSetting).values(**data).returning(HSVSetting.id)
+            result = await self.session.execute(stat)
+            new_id = result.scalar_one()
+            await self.session.commit()
+            await self.set_active_hsv_set(new_id)
             return True
         except ProfileLimitReachedError:
             raise
         except IntegrityError:
+            await self.session.rollback()
             raise ProfileNameAlreadyExistsError()
         except Exception as error:
-            logger.error(f"Error occurred save {model} data: {error}", exc_info=True)
+            await self.session.rollback()
+            logger.error(f"Error occurred save add_new_hsv_set data: {error}", exc_info=True)
             return False
 
-    @classmethod
-    async def set_active_profile(cls, session: AsyncSession, model: type[Base], profile_name: str) -> bool:
+    async def set_active_hsv_set(self, hsv_id: int):
         try:
-            # Сначала устанавливаем все профили как неактивные
-            await session.execute(update(model).values(is_active=False))
-            # Устанавливаем новый профиль как активный
-            await session.execute(
-                update(model).where(model.profile_name == profile_name).values(is_active=True))
-            await session.commit()
+            await self.session.execute(update(HSVSetting).values(is_active=False))
+            await self.session.execute(update(HSVSetting).where(HSVSetting.id == hsv_id).values(is_active=True))
+            await self.session.commit()
             return True
         except Exception as error:
-            logger.error(f"Error occurred save PixelDistance data: {error}", exc_info=True)
+            await self.session.rollback()
+            logger.error(f"Error occurred save active profile: {error}", exc_info=True)
             return False
 
-    @classmethod
-    async def get_active_profile(cls, session: AsyncSession, model: type[Base]):
+    async def get_active_hsv_set(self):
         try:
-            query = (
-                select(model).where(model.is_active).limit(1)
-            )
-            active_profile = await session.execute(query)
-            logger.info(f"Получен активный профиль {model}")
-            return active_profile.scalars().first()  # Вернем объект GolfShot
+            query = select(HSVSetting).where(HSVSetting.is_active).limit(1)
+            result = await self.session.execute(query)
+            return result.scalars().first()
         except Exception as error:
             logger.error(f"Error occurred get active profile: {error}", exc_info=True)
             return None
 
-    @classmethod
-    async def delete_record(cls, session: AsyncSession, model: type[Base], record_id: int) -> bool:
-        """Удаляет запись из указанной модели по ID."""
+    async def get_all_hsv_set(self):
+        query = select(HSVSetting)
+        result = await self.session.execute(query)
+        # all() или .fetchall()
+        return result.scalars().all()
+
+
+class PixelDistanceSettingRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session)
+
+    async def add_new_pixel_distance_set(self, data: dict):
         try:
-            query = delete(model).where(model.id == record_id)
-            await session.execute(query)
-            await session.commit()
-            logger.info(f"Запись с ID {record_id} удалена из {model.__tablename__}")
+            count_records = await self.session.scalar(select(func.count()).select_from(PixelDistance))
+            if count_records >= self.MAX_PROFILES:
+                logger.warning(f"Profile limit of {self.MAX_PROFILES} reached , record not added")
+                raise ProfileLimitReachedError()
+            stat = insert(PixelDistance).values(**data).returning(PixelDistance.id)
+            result = await self.session.execute(stat)
+            new_id = result.scalar_one()
+            await self.session.commit()
+            await self.set_active_pixel_distance_set(new_id)
             return True
-        except NoResultFound:
-            logger.error(f"Запись с ID {record_id} не найдена в {model.__tablename__}")
+        except ProfileLimitReachedError:
+            raise
+        except IntegrityError:
+            await self.session.rollback()
+            raise ProfileNameAlreadyExistsError()
+        except Exception as error:
+            await self.session.rollback()
+            logger.error(f"Error occurred save new pixel distance data: {error}", exc_info=True)
             return False
-        except Exception as e:
-            await session.rollback()
-            logger.error(f"Ошибка при удалении из {model.__tablename__}: {e}")
+
+    async def set_active_pixel_distance_set(self, pix_dis_id: int):
+        try:
+            await self.session.execute(update(PixelDistance).values(is_active=False))
+            await self.session.execute(update(PixelDistance).where(PixelDistance.id == pix_dis_id).values(is_active=True))
+            await self.session.commit()
+            return True
+        except Exception as error:
+            await self.session.rollback()
+            logger.error(f"Error occurred save active profile: {error}", exc_info=True)
             return False
+
+    async def get_active_pixel_distance_set(self):
+        try:
+            query = select(PixelDistance).where(PixelDistance.is_active).limit(1)
+            result = await self.session.execute(query)
+            return result.scalars().first()
+        except Exception as error:
+            logger.error(f"Error occurred get active profile: {error}", exc_info=True)
+            return None
