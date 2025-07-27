@@ -2,9 +2,9 @@ import asyncio
 
 import flet as ft
 
-from gui.drive_range_section import load_drive_range_section
+from gui.drive_range_section import DriveRangeSection
 from logging_config import logger
-from data_base.db import DataBase
+from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.config_db import async_session_maker
 
 
@@ -18,7 +18,7 @@ class HomeView:
         self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.show_home())
 
     async def init(self) -> ft.Container:
-        # self.latest_shot_data = await DataBase.get_last_shot(session=async_session_maker())
+        """Initialize the view, load the latest shot data and the default section UI."""
         self.latest_shot_data = await self.last_shot()
         load_drive_range_section = DriveRangeSection(self.latest_shot_data)
         self.drive_range_section = await load_drive_range_section.build_section()
@@ -83,9 +83,9 @@ class HomeView:
 
     @classmethod
     async def last_shot(cls):
-        """Returns data about the last shot (from the database)"""
         async with async_session_maker() as session:
-            return await DataBase.get_last_shot(session=session)
+            repo = GolfShotRepository(session)
+            return await repo.get_last_shot()
 
     async def check_db_updates(self):
         last_data = self.latest_shot_data

@@ -9,8 +9,7 @@ from cvzone.ColorModule import ColorFinder
 
 from gui.app_context import AppContext
 from data_base.config_db import async_session_maker
-from data_base.db import DataBase
-from data_base.models import HSVSetting
+from data_base.repositories.hsv_setting import HSVSettingRepository
 from exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
 from logging_config import logger
 
@@ -37,7 +36,8 @@ class FindBallByColor:
 
     async def get_active_hsv_profile(self):
         async with async_session_maker() as session:
-            data = await DataBase.get_active_profile(session, HSVSetting)
+            repo = HSVSettingRepository(session)
+            data = await repo.get_active_hsv_set()
             logger.info(f"Data active_hsv - {data.id}")
 
     async def save_hsv_values(self, hsv_value: dict, profile_name: str):
@@ -57,7 +57,8 @@ class FindBallByColor:
 
         try:
             async with async_session_maker() as session:
-                success = await DataBase.save_hsv_or_pixel_value(session, HSVSetting, mapped_data)
+                repo = HSVSettingRepository(session)
+                success = await repo.add_new_hsv_set(mapped_data)
                 if success:
                     logger.info("Data added successfully")
                     self.show_snackbar("HSV settings have been successfully saved", "success")

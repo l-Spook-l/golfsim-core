@@ -1,13 +1,13 @@
 import flet as ft
 
 from data_base.config_db import async_session_maker
-from data_base.db import DataBase
+from data_base.repositories.golf_shot import GolfShotRepository
 
 
 async def load_data() -> list:
     async with async_session_maker() as session:  # Создание сессии
-        golf_shots = await DataBase.get_data(session=session)  # Передача сессии в метод
-        print("data - ", golf_shots[0])
+        repo = GolfShotRepository(session)
+        golf_shots = await repo.get_all_shots()  # Передача сессии в метод
         data = [
             [
                 str(golf_shot.id),
@@ -29,17 +29,8 @@ async def load_data() -> list:
 
 
 async def load_stat_tab():
-    # page.scroll = "adaptive"
-
-    # Заголовки столбцов
-    headers = (
-        "N", "Club", "Ball\n(mph)", "Launch V\n(deg)", "Launch H\n(deg)", "Carry\n(yd)", "Roll\n(yd)", "Total\n(yd)",
-        "Lateral\n(yd)", "Spin\n(rpm)", "Date"
-    )
-
     data = await load_data()
 
-    # Создание таблицы
     headers = (
         "N", "Club", "Ball\n(mph)", "Launch V\n(deg)", "Launch H\n(deg)", "Carry\n(yd)",
         "Roll\n(yd)", "Total\n(yd)", "Lateral\n(yd)", "Spin\n(rpm)", "Date"
@@ -68,7 +59,6 @@ async def load_stat_tab():
                     width=171,
                     bgcolor="#E8F5E9" if idx % 2 == 0 else "#C8E6C9",  # Зебра
                     border=ft.border.all(1, "#BDBDBD"),
-                    # padding=6,
                     alignment=ft.alignment.center,
                 )
                 for cell in row

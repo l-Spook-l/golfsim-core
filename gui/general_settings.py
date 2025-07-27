@@ -5,8 +5,7 @@ import flet as ft
 import aiofiles
 
 from data_base.config_db import async_session_maker
-from data_base.db import DataBase
-from data_base.models import HSVSetting
+from data_base.repositories.hsv_setting import HSVSettingRepository
 from utils import load_settings
 from logging_config import logger
 
@@ -18,7 +17,6 @@ class GeneralSettings:
             "Metric": {"Distance": "Meters", "Speed": "km/h"},
             "Scientific": {"Distance": "Meters", "Speed": "m/s"},
         }
-
         self.theme_mode = ("LIGHT", "DARK")
 
     @classmethod
@@ -46,7 +44,9 @@ class GeneralSettings:
 
     async def active_profile_change(self):
         async with async_session_maker() as session:
-            data = await DataBase.get_active_profile(session, HSVSetting)
+            repo = HSVSettingRepository(session)
+            data = await repo.get_active_hsv_set()
+            # data = await DataBase.get_active_profile(session, HSVSetting)
             logger.info(f"Data active_hsv - {data.id}")
 
         return ft.Container(
