@@ -3,7 +3,7 @@ import flet as ft
 from gui.app_context import AppContext
 from gui.tab_home import HomeView
 from gui.tab_settings import SettingsView
-from gui.general_settings import load_settings
+from utils import load_settings
 
 
 async def main(page: ft.Page) -> None:
