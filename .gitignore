@@ -1,14 +1,7 @@
 .idea
-images
+media_files_for_tests
 venv
-video_distance_50cm
-video_speed_ball_patt_50cm
-video_test
-video_dnerp
 flet_tests
-new_test_videos
-videos
-web_cam
 .env
 Test_list
 golf_info
@@ -18,3 +11,4 @@ build/
 dist/
 wheels/
 *.egg-info
+old_files
