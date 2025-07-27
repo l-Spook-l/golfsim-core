@@ -1,4 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class GolfShotSchema(BaseModel):
+    carry: float = Field(..., title="Carry (yd)")
+    ball_speed: float = Field(..., title="Ball (mph)")
+    angle_v: float = Field(..., title="Launch V")
+    angle_h: float = Field(..., title="Launch H")
+
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class HSVSettingSchema(BaseModel):
