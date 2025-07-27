@@ -2,22 +2,20 @@ import os
 import asyncio
 
 from find_ball import find_golf_ball
+from logging_config import logger
 
 
 class FolderWatcher:
-    def __init__(self, directory):
+    def __init__(self, directory="mobile_uploads/golf_shots"):
         self.directory = directory
-        # self.processed_files = set()
-        self.processed_files = set(os.listdir(self.directory))  # Сохраняем существующие файлы как обработанные
+        os.makedirs(self.directory, exist_ok=True)  # Убедимся, что папка существует
+        self.processed_videos = set(os.listdir(self.directory))  # Сохраняем существующие файлы как обработанные
 
-        # Убедимся, что папка существует
-        os.makedirs(self.directory, exist_ok=True)
-
-    async def check_for_new_files(self):
+    async def check_new_video(self):
         # Получаем текущий список файлов в папке
         current_files = set(os.listdir(self.directory))
         # Находим новые файлы
-        new_files = current_files - self.processed_files
+        new_files = current_files - self.processed_videos
         print('new_files', new_files)
         if new_files:
             print('in if new_files', new_files)
@@ -28,12 +26,12 @@ class FolderWatcher:
                     print('опаопа нашол')
                     await find_golf_ball(file_name)
             # Обновляем список обработанных файлов
-            self.processed_files = current_files
+            self.processed_videos = current_files
 
     async def check_folder(self):
-        logger(f"Отслеживание папки: {self.directory}")
+        logger.info(f"Folder tracking: {self.directory}")
         while True:
-            await self.check_new_files()
+            await self.check_new_video()
             await asyncio.sleep(1)
 
 
