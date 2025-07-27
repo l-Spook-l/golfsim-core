@@ -3,20 +3,20 @@ import json
 
 import flet as ft
 
+from data_base.schemas import GolfShotSchema
 from gui.app_context import AppContext
 from gui.tab_graph import load_stat
 from logging_config import logger
 
 
 class DriveRangeSection:
-    def __init__(self, last_shot: list):
+    def __init__(self, last_shot: dict):
         self.page = AppContext.get_page()
         self.last_shot = last_shot
         self.active_club = {"name": "", "image": ""}
         self.golf_clubs = []
         self.dlg_modal = None
         self.button_select_club = None
-        self.last_hit_title = ("Carry (yd)", "Ball (mph)", "Launch V", "Launch H")
 
     async def load_clubs_info(self):
         if os.path.exists("data/clubs.json"):
@@ -78,11 +78,13 @@ class DriveRangeSection:
 
     def build_last_shot_table(self) -> ft.Container:
         last_shot_data = []
-        for index in range(len(self.last_shot)):
+        for field_name, field_value in GolfShotSchema.model_fields.items():
+            title = field_value.title
+            value = self.last_shot.get(field_name)
             row = ft.Container(
                 content=ft.Column([
-                    ft.Text(self.last_hit_title[index], size=35, width=180, text_align=ft.TextAlign.CENTER),
-                    ft.Text(self.last_shot[index], size=45, width=180, text_align=ft.TextAlign.CENTER),
+                    ft.Text(title, size=35, width=180, text_align=ft.TextAlign.CENTER),
+                    ft.Text(f"{value}", size=45, width=180, text_align=ft.TextAlign.CENTER),
                 ]),
                 # padding=10,
                 bgcolor="#E8F5E9",
