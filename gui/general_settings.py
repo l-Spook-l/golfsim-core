@@ -1,4 +1,3 @@
-import os
 import json
 
 import flet as ft
@@ -6,18 +5,23 @@ import aiofiles
 
 from data_base.config_db import async_session_maker
 from data_base.repositories.hsv_setting import HSVSettingRepository
+from gui.app_context import AppContext
 from utils import load_settings
 from logging_config import logger
 
 
 class GeneralSettings:
     def __init__(self):
+        self.page = AppContext.get_page()
         self.unit_system = {
             "Imperial": {"Distance": "Yards", "Speed": "mph"},
             "Metric": {"Distance": "Meters", "Speed": "km/h"},
             "Scientific": {"Distance": "Meters", "Speed": "m/s"},
         }
         self.theme_mode = ("LIGHT", "DARK")
+        self.active_hsv_set = ft.Container()
+        self.dlg_modal = ft.AlertDialog()
+        self.hsv_sets_data = None
 
     @classmethod
     async def save_to_json(cls, field: str, value: str, file_path: str = "settings.json"):
@@ -41,6 +45,63 @@ class GeneralSettings:
         theme_value = "dark" if value.data == "true" else "light"
         logger.info(f'theme_changed - value {value}, {theme_value}')
         await cls.save_to_json('theme', theme_value)
+
+    async def load_hsv_sets(self):
+        async with async_session_maker() as session:
+            repo = HSVSettingRepository(session)
+            self.hsv_sets_data = await repo.get_all_hsv_set()
+
+    def hvs_selector(self):
+        return ft.AlertDialog(
+            title=ft.Text("Choose a HSV set", size=25, text_align=ft.TextAlign.CENTER),
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Row([
+                        ft.Container(
+                            width=350,
+                            height=280,
+                            border_radius=15,
+                            padding=10,
+                            bgcolor="white",
+                            content=ft.Column([
+                                ft.Row(
+                                    [
+                                        ft.IconButton(icon=ft.Icons.SPELLCHECK_ROUNDED, icon_color="green"),
+                                        ft.Text(f"{hsv_data.profile_name}", size=22),
+                                        ft.IconButton(icon=ft.Icons.DELETE_FOREVER_OUTLINED, icon_color="red"),
+                                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                                ),
+                                ft.Row(
+                                    [
+                                        ft.Column([
+                                            ft.Text(f"hmin: {hsv_data.hue_min}", size=18),
+                                            ft.Text(f"hmax: {hsv_data.saturation_min}", size=18),
+                                            ft.Text(f"smin: {hsv_data.value_min}", size=18),
+                                            ft.Text(f"smax: {hsv_data.hue_max}", size=18),
+                                            ft.Text(f"vmin: {hsv_data.saturation_max}", size=18),
+                                            ft.Text(f"vmax: {hsv_data.hue_max}", size=18),
+                                        ]),
+                                        ft.Image(
+                                            src="mobile_uploads/images/profile_images/photo.jpg",
+                                            fit=ft.ImageFit.COVER,
+                                            width=200,
+                                            height=200,
+                                            border_radius=5
+                                        ),
+                                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                                )
+                            ])
+                        ) for hsv_data in self.hsv_sets_data[i:i + 4]
+                    ]) for i in range(0, len(self.hsv_sets_data), 4)
+                ])
+            ),
+            bgcolor="#E4E7EB",
+            on_dismiss=lambda e: print("Диалог закрыт")
+        )
+
+    async def update_active_hsv_set(self, hsv_id: int):
+        self.page.close(self.dlg_modal)
+        self.page.update()
 
     async def active_profile_change(self):
         async with async_session_maker() as session:
@@ -90,7 +151,11 @@ class GeneralSettings:
             border_radius=10
         )
 
-    async def build_section(self):
+    async def build_section(self) -> ft.Container:
+        await self.load_hsv_sets()
+        self.dlg_modal = self.hvs_selector()
+        self.active_hsv_set = await self.active_profile_change()
+
         dropdown_select_unit_system = ft.Dropdown(
             value="Imperial",
             on_change=self.change_unit_system,
