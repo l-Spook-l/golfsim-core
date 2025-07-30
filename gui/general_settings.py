@@ -132,7 +132,7 @@ class GeneralSettings:
         self.page.close(self.dlg_modal)
         self.dlg_modal = await self.hvs_selector()
 
-    async def get_active_hsv_set(self):
+    async def get_active_hsv_set(self) -> ft.Container:
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
             data = await repo.get_active_hsv_set()
@@ -166,18 +166,24 @@ class GeneralSettings:
 
         return ft.Container(
             content=ft.Column([
+                ft.Text(f"Active HSV", size=25, text_align=ft.TextAlign.CENTER),
                 ft.Row(
-                    [ft.Text(f"Active HSV: {data.profile_name}", size=22), button_change_active_hsv]
+                    [
+                        ft.Text(f"{data.profile_name}", size=22),
+                        button_change_active_hsv
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                 ),
                 ft.Row(
-                    [info_section, image_section]
+                    [info_section, image_section],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                 ),
             ]),
             bgcolor="#E4E7EB",
-            width=500,
-            height=300,
+            width=350,
+            height=320,
             padding=10,
-            border_radius=10
+            border_radius=10,
         )
 
     async def build_section(self) -> ft.Container:
@@ -222,8 +228,10 @@ class GeneralSettings:
         self.container_section = ft.Container(
             content=ft.Row(
                 [
-                    general,
-                    simulator,
+                    ft.Column([
+                        general,
+                        simulator,
+                    ]),
                     self.active_hsv_set
                 ],
                 spacing=20,
