@@ -1,204 +1,192 @@
 {
-    "clubs": [
-        {
-            "name": "Driver",
-            "image": "assets/clubs/driver.png",
-            "loft_range": "8–12",
-            "loft_average": 10,
-            "launch_angle_range": "10–15",
-            "launch_angle_average": 12.5,
-            "spin_rate_range": "2000–3000",
-            "spin_rate_average": 2500,
-            "smash_factor": 1.49,
-            "distances": {
-                "Beginner": 180,
-                "Average": 220,
-                "Good": 250,
-                "Excellent": 280,
-                "PGA Tour": 300,
-                "Bryson DeChambeau": 325,
-                "Dustin Johnson": 312
-            }
-        },
-        {
-            "name": "3-Wood",
-            "image": "assets/clubs/wood.png",
-            "loft_range": "13–16",
-            "loft_average": 14.5,
-            "launch_angle_range": "12–16",
-            "launch_angle_average": 14,
-            "spin_rate_range": "3000–4000",
-            "spin_rate_average": 3500,
-            "smash_factor": 1.48,
-            "distances": {
-                "Beginner": 170,
-                "Average": 210,
-                "Good": 225,
-                "Excellent": 235,
-                "PGA Tour": 274,
-                "Bryson DeChambeau": 295,
-                "Dustin Johnson": 282
-            }
-        },
-        {
-            "name": "5-Wood",
-            "image": "assets/clubs/wood.png",
-            "loft_range": "17–19",
-            "loft_average": 18,
-            "launch_angle_range": "14–18",
-            "launch_angle_average": 16,
-            "spin_rate_range": "3000–4000",
-            "spin_rate_average": 3500,
-            "smash_factor": 1.47,
-            "distances": {
-                "Beginner": 150,
-                "Average": 195,
-                "Good": 205,
-                "Excellent": 220,
-                "PGA Tour": 259,
-                "Bryson DeChambeau": 275,
-                "Dustin Johnson": 267
-            }
-        },
-        {
-            "name": "4-Iron",
-            "image": "assets/clubs/iron.png",
-            "loft_range": "25–27",
-            "loft_average": 26,
-            "launch_angle_range": "16–18",
-            "launch_angle_average": 17,
-            "spin_rate_range": "3500–5500",
-            "spin_rate_average": 4500,
-            "smash_factor": 1.43,
-            "distances": {
-                "Beginner": 100,
-                "Average": 160,
-                "Good": 170,
-                "Excellent": 195,
-                "PGA Tour": 228,
-                "Bryson DeChambeau": 255,
-                "Dustin Johnson": 236
-            }
-        },
-        {
-            "name": "5-Iron",
-            "image": "assets/clubs/iron.png",
-            "loft_range": "28–30",
-            "loft_average": 29,
-            "launch_angle_range": "17–19",
-            "launch_angle_average": 18,
-            "spin_rate_range": "4000–6000",
-            "spin_rate_average": 5000,
-            "smash_factor": 1.41,
-            "distances": {
-                "Beginner": 120,
-                "Average": 155,
-                "Good": 165,
-                "Excellent": 185,
-                "PGA Tour": 218,
-                "Bryson DeChambeau": 235,
-                "Dustin Johnson": 225
-            }
-        },
-        {
-            "name": "6-Iron",
-            "image": "assets/clubs/iron.png",
-            "loft_range": "31–34",
-            "loft_average": 32.5,
-            "launch_angle_range": "18–20",
-            "launch_angle_average": 19,
-            "spin_rate_range": "4500–6500",
-            "spin_rate_average": 5500,
-            "smash_factor": 1.38,
-            "distances": {
-                "Beginner": 120,
-                "Average": 145,
-                "Good": 160,
-                "Excellent": 175,
-                "PGA Tour": 206,
-                "Bryson DeChambeau": 220,
-                "Dustin Johnson": 212
-            }
-        },
-        {
-            "name": "7-Iron",
-            "image": "assets/clubs/iron.png",
-            "loft_range": "35–38",
-            "loft_average": 36.5,
-            "launch_angle_range": "19–21",
-            "launch_angle_average": 20,
-            "spin_rate_range": "5000–7000",
-            "spin_rate_average": 6000,
-            "smash_factor": 1.33,
-            "distances": {
-                "Beginner": 110,
-                "Average": 140,
-                "Good": 150,
-                "Excellent": 165,
-                "PGA Tour": 193,
-                "Bryson DeChambeau": 205,
-                "Dustin Johnson": 200
-            }
-        },
-        {
-            "name": "8-Iron",
-            "image": "assets/clubs/iron.png",
-            "loft_range": "39–42",
-            "loft_average": 40.5,
-            "launch_angle_range": "20–22",
-            "launch_angle_average": 21,
-            "spin_rate_range": "5500–7500",
-            "spin_rate_average": 6500,
-            "smash_factor": 1.32,
-            "distances": {
-                "Beginner": 100,
-                "Average": 130,
-                "Good": 140,
-                "Excellent": 155,
-                "PGA Tour": 180,
-                "Bryson DeChambeau": 190,
-                "Dustin Johnson": 186
-            }
-        },
-        {
-            "name": "9-Iron",
-            "image": "assets/clubs/iron.png",
-            "loft_range": "44–48",
-            "loft_average": 46,
-            "launch_angle_range": "22–26",
-            "launch_angle_average": 24,
-            "spin_rate_range": "7000–9000",
-            "spin_rate_average": 8000,
-            "smash_factor": 1.28,
-            "distances": {
-                "Beginner": 90,
-                "Average": 115,
-                "Good": 125,
-                "Excellent": 145,
-                "PGA Tour": 166,
-                "Bryson DeChambeau": 175,
-                "Dustin Johnson": 172
-            }
-        },
-        {
-            "name": "Pitching Wedge",
-            "image": "assets/clubs/wedge.png",
-            "loft_range": "44–48",
-            "loft_average": 46,
-            "launch_angle_range": "22–26",
-            "launch_angle_average": 24,
-            "spin_rate_range": "7000–9000",
-            "spin_rate_average": 8000,
-            "smash_factor": 1.23,
-            "distances": {
-                "Beginner": 80,
-                "Average": 100,
-                "Good": 110,
-                "Excellent": 135,
-                "PGA Tour": 153,
-                "Bryson DeChambeau": 160,
-                "Dustin Johnson": 158
-            }
+    "Driver": {
+        "image": "assets/clubs/driver.png",
+        "loft_range": "8–12",
+        "loft_average": 10,
+        "launch_angle_range": "10–15",
+        "launch_angle_average": 12.5,
+        "spin_rate_range": "2000–3000",
+        "spin_rate_average": 2500,
+        "smash_factor": 1.49,
+        "distances": {
+            "Beginner": 180,
+            "Average": 220,
+            "Good": 250,
+            "Excellent": 280,
+            "PGA Tour": 300,
+            "Bryson DeChambeau": 325,
+            "Dustin Johnson": 312
         }
-    ]
+    },
+    "3-Wood": {
+        "image": "assets/clubs/wood.png",
+        "loft_range": "13–16",
+        "loft_average": 14.5,
+        "launch_angle_range": "12–16",
+        "launch_angle_average": 14,
+        "spin_rate_range": "3000–4000",
+        "spin_rate_average": 3500,
+        "smash_factor": 1.48,
+        "distances": {
+            "Beginner": 170,
+            "Average": 210,
+            "Good": 225,
+            "Excellent": 235,
+            "PGA Tour": 274,
+            "Bryson DeChambeau": 295,
+            "Dustin Johnson": 282
+        }
+    },
+    "5-Wood": {
+        "image": "assets/clubs/wood.png",
+        "loft_range": "17–19",
+        "loft_average": 18,
+        "launch_angle_range": "14–18",
+        "launch_angle_average": 16,
+        "spin_rate_range": "3000–4000",
+        "spin_rate_average": 3500,
+        "smash_factor": 1.47,
+        "distances": {
+            "Beginner": 150,
+            "Average": 195,
+            "Good": 205,
+            "Excellent": 220,
+            "PGA Tour": 259,
+            "Bryson DeChambeau": 275,
+            "Dustin Johnson": 267
+        }
+    },
+    "4-Iron": {
+        "image": "assets/clubs/iron.png",
+        "loft_range": "25–27",
+        "loft_average": 26,
+        "launch_angle_range": "16–18",
+        "launch_angle_average": 17,
+        "spin_rate_range": "3500–5500",
+        "spin_rate_average": 4500,
+        "smash_factor": 1.43,
+        "distances": {
+            "Beginner": 100,
+            "Average": 160,
+            "Good": 170,
+            "Excellent": 195,
+            "PGA Tour": 228,
+            "Bryson DeChambeau": 255,
+            "Dustin Johnson": 236
+        }
+    },
+    "5-Iron": {
+        "image": "assets/clubs/iron.png",
+        "loft_range": "28–30",
+        "loft_average": 29,
+        "launch_angle_range": "17–19",
+        "launch_angle_average": 18,
+        "spin_rate_range": "4000–6000",
+        "spin_rate_average": 5000,
+        "smash_factor": 1.41,
+        "distances": {
+            "Beginner": 120,
+            "Average": 155,
+            "Good": 165,
+            "Excellent": 185,
+            "PGA Tour": 218,
+            "Bryson DeChambeau": 235,
+            "Dustin Johnson": 225
+        }
+    },
+    "6-Iron": {
+        "image": "assets/clubs/iron.png",
+        "loft_range": "31–34",
+        "loft_average": 32.5,
+        "launch_angle_range": "18–20",
+        "launch_angle_average": 19,
+        "spin_rate_range": "4500–6500",
+        "spin_rate_average": 5500,
+        "smash_factor": 1.38,
+        "distances": {
+            "Beginner": 120,
+            "Average": 145,
+            "Good": 160,
+            "Excellent": 175,
+            "PGA Tour": 206,
+            "Bryson DeChambeau": 220,
+            "Dustin Johnson": 212
+        }
+    },
+    "7-Iron": {
+        "image": "assets/clubs/iron.png",
+        "loft_range": "35–38",
+        "loft_average": 36.5,
+        "launch_angle_range": "19–21",
+        "launch_angle_average": 20,
+        "spin_rate_range": "5000–7000",
+        "spin_rate_average": 6000,
+        "smash_factor": 1.33,
+        "distances": {
+            "Beginner": 110,
+            "Average": 140,
+            "Good": 150,
+            "Excellent": 165,
+            "PGA Tour": 193,
+            "Bryson DeChambeau": 205,
+            "Dustin Johnson": 200
+        }
+    },
+    "8-Iron": {
+        "image": "assets/clubs/iron.png",
+        "loft_range": "39–42",
+        "loft_average": 40.5,
+        "launch_angle_range": "20–22",
+        "launch_angle_average": 21,
+        "spin_rate_range": "5500–7500",
+        "spin_rate_average": 6500,
+        "smash_factor": 1.32,
+        "distances": {
+            "Beginner": 100,
+            "Average": 130,
+            "Good": 140,
+            "Excellent": 155,
+            "PGA Tour": 180,
+            "Bryson DeChambeau": 190,
+            "Dustin Johnson": 186
+        }
+    },
+    "9-Iron": {
+        "image": "assets/clubs/iron.png",
+        "loft_range": "44–48",
+        "loft_average": 46,
+        "launch_angle_range": "22–26",
+        "launch_angle_average": 24,
+        "spin_rate_range": "7000–9000",
+        "spin_rate_average": 8000,
+        "smash_factor": 1.28,
+        "distances": {
+            "Beginner": 90,
+            "Average": 115,
+            "Good": 125,
+            "Excellent": 145,
+            "PGA Tour": 166,
+            "Bryson DeChambeau": 175,
+            "Dustin Johnson": 172
+        }
+    },
+    "Pitching Wedge": {
+        "image": "assets/clubs/wedge.png",
+        "loft_range": "44–48",
+        "loft_average": 46,
+        "launch_angle_range": "22–26",
+        "launch_angle_average": 24,
+        "spin_rate_range": "7000–9000",
+        "spin_rate_average": 8000,
+        "smash_factor": 1.23,
+        "distances": {
+            "Beginner": 80,
+            "Average": 100,
+            "Good": 110,
+            "Excellent": 135,
+            "PGA Tour": 153,
+            "Bryson DeChambeau": 160,
+            "Dustin Johnson": 158
+        }
+    }
 }
