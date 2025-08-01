@@ -1,15 +1,15 @@
 import asyncio
 
-# Сторонние библиотеки
 import cv2
 import cvzone
 
-# Локальные модули
 import find_angle
 from data_base.config_db import async_session_maker
 from data_base.db import DataBase
 from config import hsvVals, frames_in_second, myColorFinder, min_area
-from config import cap
+from utils import ShotResult
+
+
 """
 Посчитать сколько пикселей проходишь по горизонтали 
 Посчитать сколько пикселей проходишь по вертикали
@@ -36,6 +36,7 @@ async def add_data_db(shot_result: dict):
 async def find_golf_ball(name_vidio_file: str = None):
     # cap = cv2.VideoCapture(f'folder_test_all_open/{name_vidio_file}')
 
+    set_shot_result = ShotResult()
     # Список для позиций
     pos_list = []
     # Счетчик списков которые были сохранены
@@ -211,9 +212,10 @@ async def find_golf_ball(name_vidio_file: str = None):
 
                 print(coordinates_angle)
                 # Запись найденной макс. скорости, для Unity
-                with open("Max_Speed.txt", "w") as file:
-                    # file.write(str(int(MaxSpeed)))
-                    file.write(str(max_speed))
+                set_shot_result.speed = max_speed
+                set_shot_result.vertical_angle = angle
+                set_shot_result.save_data()
+
                 # Если мяч несколько раз будет в кадре, то записываем так
                 with open(f"Test_list/test_{list_counter}.txt", "a") as f:
                     # Если мяч будет в кадре только 1 раз записываем так
