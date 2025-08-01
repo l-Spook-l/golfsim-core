@@ -6,6 +6,7 @@ from gui.drive_range_section import DriveRangeSection
 from logging_config import logger
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.config_db import async_session_maker
+from utils import SelectClub
 
 
 class HomeView:
@@ -16,6 +17,7 @@ class HomeView:
         self.latest_shot_data = None
         self.drive_range_section = None
         self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.show_home())
+        self.selected_club = SelectClub()
 
     async def init(self) -> ft.Container:
         """Initialize the view, load the latest shot data and the default section UI."""
@@ -61,6 +63,7 @@ class HomeView:
                     ]),
                     self.drive_range_section
                 ])
+                self.selected_club.club = "Driver"
             case "putting":
                 self.current_section.content = ft.Column([
                     ft.Row([
@@ -68,6 +71,7 @@ class HomeView:
                         ft.Text("🎯 Putting view")
                     ]),
                 ])
+                self.selected_club.club = "Putter"
             case "play-course":
                 self.current_section.content = ft.Column([
                     ft.Row([
@@ -75,6 +79,8 @@ class HomeView:
                         ft.Text("⛳ Play Course view")
                     ]),
                 ])
+                self.selected_club.club = "Driver"
+        self.selected_club.save_data()
         self.current_section.update()
 
     def show_home(self):

@@ -14,34 +14,36 @@ class DriveRangeSection:
         self.page = AppContext.get_page()
         self.last_shot = last_shot
         self.active_club = {"name": "", "image": ""}
-        self.golf_clubs = []
-        self.dlg_modal = None
+        self.golf_clubs = {}
+        self.dlg_modal = ft.AlertDialog()
         self.button_select_club = None
+        self.shot_selected_club = SelectClub()
 
     async def load_clubs_info(self):
         if os.path.exists("data/clubs.json"):
-            with open("data/clubs.json", "r", encoding="utf-8") as f:
+            with open("data/clubs.json", "r", encoding="utf-8") as file:
                 try:
-                    self.golf_clubs = json.load(f)['clubs']
+                    self.golf_clubs = json.load(file)
                 except json.JSONDecodeError:
                     logger.info("File is corrupted. Creating it again.")
-        # logger.info(f'path - {os.path.exists("settings.json")}')
-        # logger.info(f'data - {data}')
+        name_active_club = self.shot_selected_club.club
         self.active_club = {
-            "name": self.golf_clubs[0]["name"],
-            "image": self.golf_clubs[0]["image"]
+            "name": name_active_club,
+            "image": self.golf_clubs.get(name_active_club).get("image")
         }
 
-    def update_selected_club(self, club):
-        self.active_club["name"] = club["name"]
-        self.active_club["image"] = club["image"]
+    def update_selected_club(self, club_name: str, club_image_src: str):
+        self.active_club["name"] = club_name
+        self.active_club["image"] = club_image_src
         self.button_select_club.content = ft.Column([
-            ft.Text(club.get("name"), size=20),
-            ft.Image(src=club.get("image"), width=80, height=80),
+            ft.Text(club_name, size=20),
+            ft.Image(src=club_image_src, width=80, height=80),
         ])
-        logger.info(f"Selected {club} club")
-        self.page.update()
+        self.shot_selected_club.club = club_name
+        self.shot_selected_club.save_data()
+        logger.info(f"Selected club {club_name}")
         self.page.close(self.dlg_modal)
+        self.page.update()
 
     def build_club_selector(self) -> ft.AlertDialog:
         # Создание диалога с кнопками
@@ -55,12 +57,14 @@ class DriveRangeSection:
                             width=150,
                             height=120,
                             content=ft.Column([
-                                ft.Text(club["name"], size=18),
-                                ft.Image(src=club["image"], width=75, height=75),
+                                ft.Text(f"{club[0]}", size=18),
+                                ft.Image(src=club[1].get("image"), width=75, height=75),
                             ], spacing=5),
-                            on_click=lambda e, club=club: self.update_selected_club(club)
+                            on_click=lambda e, club_name=club[0],
+                                            club_image_src=club[1].get("image"): self.update_selected_club(club_name,
+                                                                                                           club_image_src)
                         )
-                        for club in self.golf_clubs[i:i + 4]  # Берем 3 элемента на каждый ряд
+                        for club in list(self.golf_clubs.items())[i:i + 4]  # Берем 3 элемента на каждый ряд
                     ])
                     for i in range(0, len(self.golf_clubs), 4)  # Делим на группы по 3 элемента
                 ]),
