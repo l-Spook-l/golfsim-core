@@ -11,12 +11,12 @@ from utils import SelectClub
 
 class HomeView:
     def __init__(self):
-        self.home = ft.Container()
+        self.home_page = ft.Container()
         self.current_section = ft.Container()
         self.current_section_name = {"name": ""}
         self.latest_shot_data = None
         self.drive_range_section = None
-        self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.show_home())
+        self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.load_home_page())
         self.selected_club = SelectClub()
 
     async def init(self) -> ft.Container:
@@ -25,7 +25,7 @@ class HomeView:
         load_drive_range_section = DriveRangeSection(self.latest_shot_data)
         self.drive_range_section = await load_drive_range_section.build_section()
 
-        self.home = ft.Container(
+        self.home_page = ft.Container(
             content=ft.Row(
                 controls=[
                     self.build_card("drive-range", "menu/drive-range.png"),
@@ -38,11 +38,11 @@ class HomeView:
             expand=True
         )
 
-        self.current_section.content = self.home
+        self.current_section.content = self.home_page
         asyncio.ensure_future(self.check_db_updates())
         return self.current_section
 
-    def build_card(self, section_name, image_url):
+    def build_card(self, section_name: str, image_url: str) -> ft.Container:
         return ft.Container(
             content=ft.Image(src=image_url, fit=ft.ImageFit.COVER, border_radius=ft.border_radius.all(8)),
             alignment=ft.alignment.center,
@@ -52,9 +52,9 @@ class HomeView:
             on_click=lambda e: self.update_section(section_name)
         )
 
-    def update_section(self, section: str):
-        self.current_section_name["name"] = section
-        match section:
+    def update_section(self, section_name: str) -> None:
+        self.current_section_name["name"] = section_name
+        match section_name:
             case "drive-range":
                 self.current_section.content = ft.Column([
                     ft.Row([
@@ -83,8 +83,8 @@ class HomeView:
         self.selected_club.save_data()
         self.current_section.update()
 
-    def show_home(self):
-        self.current_section.content = self.home
+    def load_home_page(self) -> None:
+        self.current_section.content = self.home_page
         self.current_section.update()
 
     @classmethod
@@ -93,7 +93,7 @@ class HomeView:
             repo = GolfShotRepository(session)
             return await repo.get_last_shot()
 
-    async def check_db_updates(self):
+    async def check_db_updates(self) -> None:
         last_data = self.latest_shot_data
         while True:
             await asyncio.sleep(5)
