@@ -2,7 +2,8 @@ import asyncio
 
 import flet as ft
 
-from gui.drive_range_section import DriveRangeSection
+from gui.last_shot_section import LastShotSection
+from gui.drive_range_dashboard import DriveRangeDashboard
 from logging_config import logger
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.config_db import async_session_maker
@@ -13,17 +14,20 @@ class HomeView:
     def __init__(self):
         self.home_page = ft.Container()
         self.current_section = ft.Container()
-        self.current_section_name = {"name": ""}
+        self.current_section_name = ""
         self.latest_shot_data = None
-        self.drive_range_section = None
+        self.last_shot_section = None
         self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.load_home_page())
         self.selected_club = SelectClub()
+        self.drive_range_dashboard = None
 
     async def init(self) -> ft.Container:
         """Initialize the view, load the latest shot data and the default section UI."""
         self.latest_shot_data = await self.last_shot()
-        load_drive_range_section = DriveRangeSection(self.latest_shot_data)
-        self.drive_range_section = await load_drive_range_section.build_section()
+        # load_last_shot_section = LastShotSection(self.latest_shot_data)
+        # self.last_shot_section = await load_last_shot_section.build_section()
+        self.last_shot_section = await LastShotSection(self.latest_shot_data).build_section()
+        self.drive_range_dashboard = await DriveRangeDashboard().build_section()
 
         self.home_page = ft.Container(
             content=ft.Row(
@@ -61,7 +65,8 @@ class HomeView:
                         self.button_return_home,
                         ft.Text("Drive range", size=28, weight=ft.FontWeight.BOLD)
                     ]),
-                    self.drive_range_section
+                    self.last_shot_section,
+                    self.drive_range_dashboard
                 ])
                 self.selected_club.club = "Driver"
             case "putting":
@@ -70,6 +75,7 @@ class HomeView:
                         self.button_return_home,
                         ft.Text("🎯 Putting view")
                     ]),
+                    self.last_shot_section
                 ])
                 self.selected_club.club = "Putter"
             case "play-course":
@@ -78,6 +84,7 @@ class HomeView:
                         self.button_return_home,
                         ft.Text("⛳ Play Course view")
                     ]),
+                    self.last_shot_section
                 ])
                 self.selected_club.club = "Driver"
         self.selected_club.save_data()
@@ -87,8 +94,8 @@ class HomeView:
         self.current_section.content = self.home_page
         self.current_section.update()
 
-    @classmethod
-    async def last_shot(cls):
+    @staticmethod
+    async def last_shot():
         async with async_session_maker() as session:
             repo = GolfShotRepository(session)
             return await repo.get_last_shot()
@@ -101,8 +108,8 @@ class HomeView:
             if new_shot_data != last_data:
                 logger.info("New shot detected, refreshing section")
                 self.latest_shot_data = new_shot_data
-                self.drive_range_section = await DriveRangeSection(new_shot_data).build_section()
-                if self.current_section_name["name"] == "drive-range":
+                self.last_shot_section = await LastShotSection(new_shot_data).build_section()
+                if self.current_section_name == "drive-range":
                     self.update_section("drive-range")
                 last_data = new_shot_data
 
