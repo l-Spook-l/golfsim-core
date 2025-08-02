@@ -2,22 +2,16 @@ import flet as ft
 
 from data_base.config_db import async_session_maker
 from data_base.db import DataBase
+from general_settings import unit_system
 
-
-golf_list_clubs = ("All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
-                   "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
-
-unit_system = {
-    "Imperial": {"Distance": "Yards", "Speed": "mph"},
-    "Metric": {"Distance": "Meters", "Speed": "km/h"},
-    "Scientific": {"Distance": "Meters", "Speed": "m/s"},
-}
+# golf_list_clubs = ("All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
+#                    "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
 
 
 async def load_data() -> list:
     async with async_session_maker() as session:  # Создание сессии
         golf_shots = await DataBase.get_data(session=session)  # Передача сессии в метод
-        print("load_data() - data - ", golf_shots[0])
+        # print("load_data() - data - ", golf_shots[0])
 
     return golf_shots
 
@@ -25,7 +19,7 @@ async def load_data() -> list:
 async def load_stat_graph(page: ft.Page = None):
     data = await load_data()
 
-    print('qweeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee data tab', data)
+    # print('qweeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee data tab', data)
 
     data_1 = [
         ft.LineChartData(

@@ -5,11 +5,12 @@ import flet as ft
 
 from data_base.schemas import GolfShotSchema
 from gui.app_context import AppContext
-from gui.tab_graph import load_stat
+from gui.drive_range_dashboard import DriveRangeDashboard
 from logging_config import logger
+from utils import SelectClub
 
 
-class DriveRangeSection:
+class LastShotSection:
     def __init__(self, last_shot: dict):
         self.page = AppContext.get_page()
         self.last_shot = last_shot
@@ -18,6 +19,7 @@ class DriveRangeSection:
         self.dlg_modal = ft.AlertDialog()
         self.button_select_club = None
         self.shot_selected_club = SelectClub()
+        self.drive_range_dashboard = DriveRangeDashboard()
 
     async def load_clubs_info(self):
         if os.path.exists("data/clubs.json"):
@@ -126,9 +128,12 @@ class DriveRangeSection:
 
     async def build_section(self) -> ft.Container:
         await self.load_clubs_info()
+
         self.dlg_modal = self.build_club_selector()
         last_shot_table = self.build_last_shot_table()
-        stats_graph = await load_stat(self.page)
+        load_drive_range_dashboard = DriveRangeDashboard()
+        self.drive_range_dashboard = await load_drive_range_dashboard.build_section()
+        # stats_graph = await load_stat(self.page)
 
         return ft.Container(
             content=ft.Column([
@@ -136,10 +141,10 @@ class DriveRangeSection:
                     content=last_shot_table,
                     # bgcolor="#E1F0FF"
                 ),
-                ft.Container(
-                    content=stats_graph,
-                    # bgcolor=ft.Colors.ORANGE_100
-                ),
+                # ft.Container(
+                #     content=self.drive_range_dashboard,
+                #     # bgcolor=ft.Colors.ORANGE_100
+                # ),
             ]),
             # bgcolor=ft.Colors.GREEN_ACCENT_100
         )
