@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 
 class GolfShotSchema(BaseModel):
@@ -10,6 +11,35 @@ class GolfShotSchema(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+class GolfShotsSchema(BaseModel):
+    id: int
+    club: str = 'default_club'  # Значение по умолчанию
+    ball_speed: float
+    angle_v: float
+    angle_h: float
+    carry: float
+    roll: float
+    total: float
+    lateral: float
+    spin: float
+    date: datetime
+
+    def as_list(self) -> list[str]:
+        return [
+            str(self.id),
+            self.club,
+            str(self.ball_speed),
+            str(self.angle_v),
+            str(self.angle_h),
+            str(self.carry),
+            str(self.roll),
+            str(self.total),
+            str(self.lateral),
+            str(self.spin),
+            self.date.strftime("%d-%m-%Y %H:%M:%S"),
+        ]
 
 
 class HSVSettingSchema(BaseModel):
