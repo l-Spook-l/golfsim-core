@@ -54,8 +54,8 @@ class DriveRangeDashboard:
         self.dashboard_content.update()
         self.tab_content.update()
 
-    async def update(self, start_date, end_date):
-        data = await GolfShotTable().load_data(start_date, end_date)
+    async def update(self, start_date, end_date, club):
+        data = await GolfShotTable().load_data(start_date, end_date, club)
         self.table = await self.load_table.load_stat_table(data)
         self.dashboard_content.content = self.table
         self.dashboard_content.update()

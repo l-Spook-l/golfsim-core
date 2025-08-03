@@ -17,6 +17,11 @@ class FilterBar:
         self.label_date = ""
         self.open_filter_btn = ft.Container()
         self.date_range_text = ft.Text()
+        self.select_club = ""
+
+        self.golf_list_clubs = (
+            "All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
+            "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
 
     @staticmethod
     async def fetch_first_shot_date() -> datetime:
@@ -25,15 +30,32 @@ class FilterBar:
             date = await repo.get_first_shot_date()
             return date.strftime('%Y-%m-%d') if date else datetime.now().strftime('%Y-%m-%d')
 
-    async def update_table_data(self, days: int = None):
+    async def update_table_data(self, days: int = None, club: str = ""):
         if days:
             self.start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+            self.date_range_text.value = f"{self.start_date} - {self.end_date}"
+            self.date_range_text.update()
+        if club:
+            self.select_club = club
+            print('ewqqqqqqqqqqqqqqqqqqqqqqqqqqqq-------------------------------------------------------------===')
+        await self.dashboard.update(self.start_date, self.end_date, self.select_club)
 
-        await self.dashboard.update(self.start_date, self.end_date)
-        self.date_range_text.value = f"{self.start_date} - {self.end_date}"
-        self.date_range_text.update()
+    def select_club_filter(self):
+        async def dropdown_changed_club(value):
+            await self.update_table_data(club=value.data)
 
-    def quick_date_sort(self) -> ft.Container:
+        return ft.Dropdown(
+            label="Club",
+            value=self.golf_list_clubs[0],  # Значение по умолчанию
+            on_change=dropdown_changed_club,
+            options=[
+                ft.dropdown.Option(club) for club in self.golf_list_clubs
+            ],
+            width=150,
+            bgcolor="#E8F5E9"
+        )
+
+    def quick_date_filter(self) -> ft.Container:
         return ft.Container(
             content=ft.Column([
                 ft.Text("Quick Select"),
@@ -103,7 +125,7 @@ class FilterBar:
         return ft.AlertDialog(
             title=ft.Text("Select Date Range"),
             content=ft.Column([
-                self.quick_date_sort(),
+                self.quick_date_filter(),
                 ft.Divider(),
                 self.calendar_date_filter()
             ], height=280),
@@ -137,7 +159,7 @@ class FilterBar:
         )
 
         return ft.Container(
-            content=ft.Row([self.open_filter_btn]),
+            content=ft.Row([self.open_filter_btn, self.select_club_filter()]),
             padding=10,
             bgcolor="#C8E6C9",
             border_radius=10,
