@@ -22,7 +22,7 @@ class GolfShotTable:
         return [GolfShotsSchema(**golf_shot.__dict__).as_list() for golf_shot in golf_shots]
 
     async def load_stat_table(self, data=None) -> ft.Container:
-        if not data:
+        if data is None:
             data = await self.load_data()
 
         headers = (
