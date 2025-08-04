@@ -15,7 +15,7 @@ class GolfShotTable:
         self.table = ft.Container()
 
     @staticmethod
-    async def load_data(start_date: datetime = None, end_date: datetime = None, club: str = None) -> list:
+    async def load_data(start_date: datetime = None, end_date: datetime = None, club: str = "") -> list:
         async with async_session_maker() as session:
             repo = GolfShotRepository(session)
             golf_shots = await repo.get_all_shots(start_date, end_date, club)

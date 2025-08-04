@@ -23,16 +23,16 @@ class GolfShotRepository(BaseRepository):
             logger.error(f"Error occurred while adding data: {error}")
             return False
 
-    async def get_all_shots(self, start_date: datetime = None, end_date: datetime = None):
+    async def get_all_shots(self, start_date: datetime = None, end_date: datetime = None, club: str = ""):
         try:
             query = select(GolfShot)
             if start_date and end_date:
                 query = query.where(GolfShot.date >= start_date, GolfShot.date <= end_date)
+            if club:
+                query = query.where(GolfShot.club == club)
 
             query = query.order_by(GolfShot.date.desc())
-            # TODO: add filter by name golf_club
-            # if golf_club:
-            #     query = query.filter(GolfShot.golf_club.ilike(golf_club_name))
+
             result = await self.session.execute(query)
             # total_count = await session.scalar(
             #     select(func.count())
@@ -42,13 +42,6 @@ class GolfShotRepository(BaseRepository):
             #     .filter(GolfShot.difficulty.in_(difficulty) if difficulty else True)
             # )
 
-            # return {
-            #     "status": "success",
-            #     "data": workouts,
-            #     "limit": limit,
-            #     "total_count": total_count,
-            # }
-            # all() или .fetchall()
             return result.scalars().fetchall()
         except Exception as error:
             logger.error(f"Error occurred while reading data: {error}", exc_info=True)

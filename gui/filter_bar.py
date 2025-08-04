@@ -36,8 +36,10 @@ class FilterBar:
             self.date_range_text.value = f"{self.start_date} - {self.end_date}"
             self.date_range_text.update()
         if club:
-            self.select_club = club
-            print('ewqqqqqqqqqqqqqqqqqqqqqqqqqqqq-------------------------------------------------------------===')
+            if club == "All clubs":
+                self.select_club = ""
+            else:
+                self.select_club = club
         await self.dashboard.update(self.start_date, self.end_date, self.select_club)
 
     def select_club_filter(self):
@@ -46,7 +48,7 @@ class FilterBar:
 
         return ft.Dropdown(
             label="Club",
-            value=self.golf_list_clubs[0],  # Значение по умолчанию
+            value=self.golf_list_clubs[0],
             on_change=dropdown_changed_club,
             options=[
                 ft.dropdown.Option(club) for club in self.golf_list_clubs
@@ -121,7 +123,7 @@ class FilterBar:
             ]),
         ])
 
-    def show_filter_dialog(self, e=None):
+    def filter_date_dialog(self, e=None) -> ft.AlertDialog:
         return ft.AlertDialog(
             title=ft.Text("Select Date Range"),
             content=ft.Column([
@@ -138,7 +140,7 @@ class FilterBar:
     async def build_section(self):
         self.start_date = await self.fetch_first_shot_date()
         self.end_date = datetime.now().strftime('%Y-%m-%d')
-        self.dlg_modal = self.show_filter_dialog()
+        self.dlg_modal = self.filter_date_dialog()
         self.date_range_text = ft.Text(f"{self.start_date} - {self.end_date}", size=20)
 
         def on_hover(e):
