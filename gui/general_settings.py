@@ -51,7 +51,7 @@ class GeneralSettings:
     async def load_hsv_sets(self):
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
-            self.hsv_sets_data = await repo.get_all_hsv_set()
+            self.hsv_sets_data = await repo.get_inactive_hsv_sets()
 
     async def hvs_selector(self):
         await self.load_hsv_sets()
@@ -104,7 +104,7 @@ class GeneralSettings:
                                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                                 )
                             ])
-                        ) for hsv_data in self.hsv_sets_data[i:i + 4] if not hsv_data.is_active
+                        ) for hsv_data in self.hsv_sets_data[i:i + 4]
                     ]) for i in range(0, len(self.hsv_sets_data), 4)
                 ])
             ),
@@ -127,7 +127,7 @@ class GeneralSettings:
     async def refresh_after_hsv_change(self):
         self.active_hsv_set = await self.get_active_hsv_set()
         self.hsv_sets_data = await self.load_hsv_sets()
-        self.container_section.content.controls[2] = self.active_hsv_set
+        self.container_section.content.controls[1] = self.active_hsv_set
         self.container_section.update()
         self.page.close(self.dlg_modal)
         self.dlg_modal = await self.hvs_selector()

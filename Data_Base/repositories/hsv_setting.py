@@ -55,8 +55,8 @@ class HSVSettingRepository(BaseRepository):
             logger.error(f"Error occurred get active profile: {error}", exc_info=True)
             return None
 
-    async def get_all_hsv_set(self):
-        query = select(HSVSetting)
+    async def get_inactive_hsv_sets(self):
+        query = select(HSVSetting).where(HSVSetting.is_active.is_(False))
         result = await self.session.execute(query)
         # all() или .fetchall()
         return result.scalars().all()
