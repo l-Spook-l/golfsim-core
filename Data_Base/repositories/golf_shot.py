@@ -23,7 +23,14 @@ class GolfShotRepository(BaseRepository):
             logger.error(f"Error occurred while adding data: {error}")
             return False
 
-    async def get_all_shots(self, start_date: datetime = None, end_date: datetime = None, club: str = ""):
+    async def get_all_shots(
+            self,
+            start_date: datetime = None,
+            end_date: datetime = None,
+            club: str = "",
+            sort_by: str = "date",
+            sort_desc: bool = True
+    ):
         try:
             query = select(GolfShot)
             if start_date and end_date:
@@ -31,7 +38,9 @@ class GolfShotRepository(BaseRepository):
             if club:
                 query = query.where(GolfShot.club == club)
 
-            query = query.order_by(GolfShot.date.desc())
+            sort_column = getattr(GolfShot, sort_by, GolfShot.date)
+
+            query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
 
             result = await self.session.execute(query)
             # total_count = await session.scalar(
