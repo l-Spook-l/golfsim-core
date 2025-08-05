@@ -30,7 +30,12 @@ class FilterBar:
             date = await repo.get_first_shot_date()
             return date.strftime('%Y-%m-%d') if date else datetime.now().strftime('%Y-%m-%d')
 
-    async def update_table_data(self, days: int = None, club: str = ""):
+    async def update_table_data(
+            self, days: int = None,
+            club: str = "",
+            sort_by: str = "date",
+            sort_desc: bool = True
+    ) -> None:
         if days:
             self.start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
             self.date_range_text.value = f"{self.start_date} - {self.end_date}"
@@ -40,9 +45,41 @@ class FilterBar:
                 self.select_club = ""
             else:
                 self.select_club = club
-        await self.dashboard.update(self.start_date, self.end_date, self.select_club)
+        await self.dashboard.update_or_sort_data(self.start_date, self.end_date, self.select_club, sort_by, sort_desc)
 
-    def select_club_filter(self):
+    def sort_filter(self):
+        async def sort_filter_changed(e):
+            match sort_filter.value:
+                case "ball_speed_desc":
+                    await self.update_table_data(sort_by="ball_speed", sort_desc=True)
+                case "ball_speed_asc":
+                    await self.update_table_data(sort_by="ball_speed", sort_desc=False)
+                case "carry_desc":
+                    await self.update_table_data(sort_by="carry", sort_desc=True)
+                case "carry_asc":
+                    await self.update_table_data(sort_by="carry", sort_desc=False)
+                case "date_desc":
+                    await self.update_table_data(sort_by="date", sort_desc=True)
+                case "date_asc":
+                    await self.update_table_data(sort_by="date", sort_desc=False)
+
+        sort_filter = ft.Dropdown(
+            label="Sort by",
+            value="date_desc",  # значение по умолчанию,
+            on_change=lambda e: self.page.run_task(sort_filter_changed, e),
+            options=[
+                ft.dropdown.Option("date_desc", "Date ↓"),
+                ft.dropdown.Option("date_asc", "Date ↑"),
+                ft.dropdown.Option("carry_desc", "Carry ↓"),
+                ft.dropdown.Option("carry_asc", "Carry ↑"),
+                ft.dropdown.Option("ball_speed_desc", "Ball Speed ↓"),
+                ft.dropdown.Option("ball_speed_asc", "Ball Speed ↑"),
+            ],
+            width=180
+        )
+        return sort_filter
+
+    def select_club_filter(self) -> ft.Dropdown:
         async def dropdown_changed_club(value):
             await self.update_table_data(club=value.data)
 
@@ -161,7 +198,7 @@ class FilterBar:
         )
 
         return ft.Container(
-            content=ft.Row([self.open_filter_btn, self.select_club_filter()]),
+            content=ft.Row([self.open_filter_btn, self.select_club_filter(), self.sort_filter()]),
             padding=10,
             bgcolor="#C8E6C9",
             border_radius=10,
