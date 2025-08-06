@@ -38,7 +38,7 @@ class GolfShotsSchema(BaseModel):
             str(self.total),
             str(self.lateral),
             str(self.spin),
-            self.date.strftime("%d-%m-%Y %H:%M:%S"),
+            self.date.strftime("%Y-%m-%d %H:%M:%S"),
         ]
 
 
