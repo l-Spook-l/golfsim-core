@@ -3,11 +3,11 @@ from datetime import datetime
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .config_db import Base
+from data_base.config_db import Base
 
 
 class GolfShot(Base):
-    __tablename__ = 'user_settings_table'
+    __tablename__ = 'drive_range_shots'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     club: Mapped[str] = mapped_column(String(length=25), nullable=True)
@@ -19,18 +19,7 @@ class GolfShot(Base):
     total: Mapped[float] = mapped_column(nullable=False, default=0.0)
     lateral: Mapped[float] = mapped_column(nullable=False, default=0.0)
     spin: Mapped[int] = mapped_column(nullable=False, default=0)
-    date: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-
-
-    # id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    # user: Mapped[int]
-    # DK021_2015: Mapped[str]
-    # Status: Mapped[str]
-    # Procurement_type: Mapped[str]
-    # Region: Mapped[str]
-    # Dispatch_time: Mapped[str]
-    # Email: Mapped[str]
-    # created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
+    date: Mapped[datetime] = mapped_column(default=datetime.now)
 
 
 class HSVSetting(Base):
@@ -44,7 +33,7 @@ class HSVSetting(Base):
     saturation_max: Mapped[int]
     value_min: Mapped[int]
     value_max: Mapped[int]
-    is_active: Mapped[bool]
+    is_active: Mapped[bool] = mapped_column(default=False)
 
 
 class PixelDistance(Base):
@@ -53,4 +42,4 @@ class PixelDistance(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     profile_name: Mapped[str] = mapped_column(String(length=99), nullable=False, unique=True)
     pixels_per_cm: Mapped[int] = mapped_column(nullable=False)
-    is_active: Mapped[bool]
+    is_active: Mapped[bool] = mapped_column(default=False)
