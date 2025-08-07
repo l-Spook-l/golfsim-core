@@ -39,9 +39,6 @@ class SettingsView:
 
         self.content_container = ft.Container(
             content=await self.load_general_settings_section.build_section(),
-            # width=500,
-            # height=500,
-            bgcolor="red"
         )
 
         self.settings = ft.Container(
@@ -53,9 +50,3 @@ class SettingsView:
             )
         )
         return self.settings
-
-    return tab_content
-
-#     page.add(tabs, tab_content)
-#
-# ft.app(target=main)
