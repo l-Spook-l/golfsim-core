@@ -3,7 +3,7 @@ import json
 
 import flet as ft
 
-from data_base.schemas import GolfShotSchema
+from data_base.schemas import LastGolfShotSchema
 from gui.app_context import AppContext
 from gui.drive_range_dashboard import DriveRangeDashboard
 from logging_config import logger
@@ -43,17 +43,14 @@ class LastShotSection:
         ])
         self.shot_selected_club.club = club_name
         self.shot_selected_club.save_data()
-        logger.info(f"Selected club {club_name}")
         self.page.close(self.dlg_modal)
         self.page.update()
 
     def build_club_selector(self) -> ft.AlertDialog:
-        # Создание диалога с кнопками
         return ft.AlertDialog(
             title=ft.Text("Choose a club", size=25, text_align=ft.TextAlign.CENTER),
             content=ft.Container(
                 content=ft.Column([
-                    # Создаем ряды для NxM
                     ft.Row([
                         ft.ElevatedButton(
                             width=150,
@@ -63,28 +60,23 @@ class LastShotSection:
                                 ft.Image(src=club[1].get("image"), width=75, height=75),
                             ], spacing=5),
                             on_click=lambda e, club_name=club[0],
-                                            club_image_src=club[1].get("image"): self.update_selected_club(club_name,
-                                                                                                           club_image_src)
+                                            club_image_src=club[1].get("image"): self.update_selected_club(
+                                club_name, club_image_src)
                         )
-                        for club in list(self.golf_clubs.items())[i:i + 4]  # Берем 3 элемента на каждый ряд
+                        for club in list(self.golf_clubs.items())[i:i + 4]
                     ])
-                    for i in range(0, len(self.golf_clubs), 4)  # Делим на группы по 3 элемента
+                    for i in range(0, len(self.golf_clubs), 4)
                 ]),
                 height=400,
-                # bgcolor="#007AFF",
             ),
-            # height=300,
-            # width=300,
-            # actions_alignment=ft.MainAxisAlignment.END,
             bgcolor="#E4E7EB",
-            adaptive=True,  # Сделать диалог адаптивным в зависимости от платформы
+            # adaptive=True,  # Сделать диалог адаптивным в зависимости от платформы
             on_dismiss=lambda e: print("Диалог закрыт")
         )
-        # return self.dlg_modal
 
     def build_last_shot_table(self) -> ft.Container:
         last_shot_data = []
-        for field_name, field_value in GolfShotSchema.model_fields.items():
+        for field_name, field_value in LastGolfShotSchema.model_fields.items():
             title = field_value.title
             value = self.last_shot.get(field_name)
             row = ft.Container(
@@ -92,7 +84,6 @@ class LastShotSection:
                     ft.Text(title, size=35, width=180, text_align=ft.TextAlign.CENTER),
                     ft.Text(f"{value}", size=45, width=180, text_align=ft.TextAlign.CENTER),
                 ]),
-                # padding=10,
                 bgcolor="#E8F5E9",
                 border=ft.border.all(1, "black"),
                 border_radius=10,
@@ -103,7 +94,6 @@ class LastShotSection:
 
         self.button_select_club = ft.ElevatedButton(
             width=200,
-            # height=200,
             content=ft.Column([
                 ft.Text(self.active_club.get("name"), size=20, text_align=ft.TextAlign.CENTER),
                 ft.Image(src=self.active_club.get("image"), width=80, height=80),
@@ -122,29 +112,20 @@ class LastShotSection:
             bgcolor="#C8E6C9",
             padding=10,
             border_radius=15,
-            # width=300,
             height=200
         )
 
     async def build_section(self) -> ft.Container:
         await self.load_clubs_info()
-
         self.dlg_modal = self.build_club_selector()
         last_shot_table = self.build_last_shot_table()
         load_drive_range_dashboard = DriveRangeDashboard()
         self.drive_range_dashboard = await load_drive_range_dashboard.build_section()
-        # stats_graph = await load_stat(self.page)
 
         return ft.Container(
             content=ft.Column([
                 ft.Container(
                     content=last_shot_table,
-                    # bgcolor="#E1F0FF"
                 ),
-                # ft.Container(
-                #     content=self.drive_range_dashboard,
-                #     # bgcolor=ft.Colors.ORANGE_100
-                # ),
             ]),
-            # bgcolor=ft.Colors.GREEN_ACCENT_100
         )
