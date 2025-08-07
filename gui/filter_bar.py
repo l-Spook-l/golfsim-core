@@ -11,8 +11,9 @@ class FilterBar:
     def __init__(self, dashboard):
         self.dashboard = dashboard
         self.page = AppContext.get_page()
-        self.start_date = ""
-        self.end_date = ""
+        self.calendar_date_filter_section = ft.Column()
+        self.start_date: datetime | None = None
+        self.end_date: datetime | None = None
         self.dlg_modal = ft.AlertDialog()
         self.label_date = ""
         self.open_filter_btn = ft.Container()
@@ -30,7 +31,7 @@ class FilterBar:
         async with async_session_maker() as session:
             repo = GolfShotRepository(session)
             date = await repo.get_first_shot_date()
-            return date.strftime('%Y-%m-%d') if date else datetime.now().strftime('%Y-%m-%d')
+            return date if date else datetime.now()
 
     async def update_table_data(
             self,
@@ -134,14 +135,14 @@ class FilterBar:
             ]),
         )
 
-    def calendar_date_filter(self):
-        def handle_change_start(e):
-            self.start_date = e.control.value.strftime('%Y-%m-%d')
-            self.page.run_task(self.update_table_data)
+    def calendar_date_filter(self) -> ft.Column:
+        async def handle_change_start(e):
+            self.start_date = e.control.value
+            await self.update_table_data()
 
-        def handle_change_end(e):
-            self.end_date = e.control.value.strftime('%Y-%m-%d')
-            self.page.run_task(self.update_table_data)
+        async def handle_change_end(e):
+            self.end_date = e.control.value
+            await self.update_table_data()
 
         return ft.Column([
             ft.Text("Custom Dates"),
@@ -159,7 +160,7 @@ class FilterBar:
                     ),
                     # style=ft.ButtonStyle(shape=ft.CircleBorder(), padding=ft.padding.all(6))
                 ),
-                ft.TextField(label="Start Date", value=self.start_date, read_only=True, width=150)
+                ft.TextField(label="Start Date", value=self.start_date.strftime('%Y-%m-%d'), read_only=True, width=150)
             ]),
             ft.Row([
                 ft.IconButton(
@@ -175,7 +176,7 @@ class FilterBar:
                     ),
                     # style=ft.ButtonStyle(shape=ft.CircleBorder(), padding=ft.padding.all(6))
                 ),
-                ft.TextField(label="End Date", value=self.end_date, read_only=True, width=150)
+                ft.TextField(label="End Date", value=self.end_date.strftime('%Y-%m-%d'), read_only=True, width=150)
             ]),
         ])
 
