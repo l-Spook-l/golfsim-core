@@ -16,7 +16,6 @@ class FilterBar:
         self.end_date: datetime | None = None
         self.dlg_modal = ft.AlertDialog()
         self.label_date = ""
-        self.open_filter_btn = ft.Container()
         self.date_range_text = ft.Text()
         self.select_club = ""
         self.sort_by = "date"
@@ -41,20 +40,30 @@ class FilterBar:
             sort_desc: bool = None,
             limit_records: int = None,
     ) -> None:
-        if days:
-            self.start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-            self.date_range_text.value = f"{self.start_date} - {self.end_date}"
-            self.date_range_text.update()
-        if club:
+        if days is not None:
+            self.start_date = (datetime.now() - timedelta(days=days))
+        if club is not None:
             if club == "All clubs":
-                self.select_club = ""
+                self.select_club = None
             else:
                 self.select_club = club
-        await self.dashboard.update_or_sort_data(self.start_date, self.end_date, self.select_club, sort_by, sort_desc)
+        if sort_by is not None or sort_desc is not None:
+            self.sort_by, self.sort_desc = sort_by, sort_desc
+        if limit_records is not None:
+            self.limit_records = limit_records
 
-    def sort_filter(self):
-        async def sort_filter_changed(e):
-            match sort_filter.value:
+        await self.dashboard.update_or_sort_data(
+            self.start_date, self.end_date, self.select_club, self.sort_by, self.sort_desc, self.limit_records
+        )
+        self.date_range_text.value = f"{self.start_date.strftime('%Y-%m-%d')} - {self.end_date.strftime('%Y-%m-%d')}"
+        self.date_range_text.update()
+        self.calendar_date_filter_section.controls[1].controls[1].value = self.start_date.strftime('%Y-%m-%d')
+        self.calendar_date_filter_section.controls[2].controls[1].value = self.end_date.strftime('%Y-%m-%d')
+        self.calendar_date_filter_section.update()
+
+    def sort_filter(self) -> ft.Dropdown:
+        async def sort_filter_changed(value):
+            match value.data:
                 case "ball_speed_desc":
                     await self.update_table_data(sort_by="ball_speed", sort_desc=True)
                 case "ball_speed_asc":
@@ -70,8 +79,8 @@ class FilterBar:
 
         sort_filter = ft.Dropdown(
             label="Sort by",
-            value="date_desc",  # значение по умолчанию,
-            on_change=lambda e: self.page.run_task(sort_filter_changed, e),
+            value="date_desc",
+            on_change=sort_filter_changed,
             options=[
                 ft.dropdown.Option("date_desc", "Date ↓"),
                 ft.dropdown.Option("date_asc", "Date ↑"),
@@ -80,7 +89,7 @@ class FilterBar:
                 ft.dropdown.Option("ball_speed_desc", "Ball Speed ↓"),
                 ft.dropdown.Option("ball_speed_asc", "Ball Speed ↑"),
             ],
-            width=180
+            width=160
         )
         return sort_filter
 
@@ -95,7 +104,7 @@ class FilterBar:
             options=[
                 ft.dropdown.Option(club) for club in self.golf_list_clubs
             ],
-            width=150,
+            width=185,
             bgcolor="#E8F5E9"
         )
 
@@ -144,7 +153,7 @@ class FilterBar:
             self.end_date = e.control.value
             await self.update_table_data()
 
-        return ft.Column([
+        self.calendar_date_filter_section = ft.Column([
             ft.Text("Custom Dates"),
             ft.Row([
                 ft.IconButton(
@@ -154,7 +163,7 @@ class FilterBar:
                     on_click=lambda _: self.page.open(
                         ft.DatePicker(
                             first_date=datetime(year=1923, month=1, day=1),
-                            last_date=datetime.now(),
+                            last_date=self.end_date,
                             on_change=handle_change_start,
                         )
                     ),
@@ -169,7 +178,7 @@ class FilterBar:
                     # icon_color="#007ACC",
                     on_click=lambda _: self.page.open(
                         ft.DatePicker(
-                            first_date=datetime(year=1923, month=1, day=1),
+                            first_date=self.start_date,
                             last_date=datetime.now(),
                             on_change=handle_change_end,
                         )
@@ -179,6 +188,8 @@ class FilterBar:
                 ft.TextField(label="End Date", value=self.end_date.strftime('%Y-%m-%d'), read_only=True, width=150)
             ]),
         ])
+
+        return self.calendar_date_filter_section
 
     def filter_date_dialog(self, e=None) -> ft.AlertDialog:
         return ft.AlertDialog(
@@ -194,17 +205,12 @@ class FilterBar:
             ],
         )
 
-    async def build_section(self):
-        self.start_date = await self.fetch_first_shot_date()
-        self.end_date = datetime.now().strftime('%Y-%m-%d')
-        self.dlg_modal = self.filter_date_dialog()
-        self.date_range_text = ft.Text(f"{self.start_date} - {self.end_date}", size=20)
-
+    def button_date_filter(self) -> ft.Container:
         def on_hover(e):
             e.control.bgcolor = "#A5D6A7" if e.data == "true" else "#E8F5E9"
             e.control.update()
 
-        self.open_filter_btn = ft.Container(
+        return ft.Container(
             content=ft.Row([
                 ft.Icon(name=ft.Icons.CALENDAR_MONTH),
                 self.date_range_text,
@@ -217,8 +223,24 @@ class FilterBar:
             on_click=lambda e: self.page.open(self.dlg_modal),
         )
 
+    async def build_section(self) -> ft.Container:
+        self.start_date = await self.fetch_first_shot_date()
+        self.end_date = datetime.now()
+        self.dlg_modal = self.filter_date_dialog()
+        self.date_range_text = ft.Text(f"{self.start_date.strftime('%Y-%m-%d')} - {self.end_date.strftime('%Y-%m-%d')}", size=20)
+
         return ft.Container(
-            content=ft.Row([self.open_filter_btn, self.select_club_filter(), self.sort_filter()]),
+            content=ft.Row(
+                [
+                    self.button_date_filter(),
+                    ft.Row([
+                        self.select_club_filter(),
+                        self.sort_filter(),
+                        self.update_records_per_page()
+                    ]),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+            ),
             padding=10,
             bgcolor="#C8E6C9",
             border_radius=10,
