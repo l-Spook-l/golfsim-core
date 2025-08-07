@@ -7,8 +7,6 @@ from logging_config import logger
 
 async def load_settings() -> dict:
     data = {}
-
-    # 1. Прочитать файл, если он существует
     if os.path.exists("settings.json"):
         async with aiofiles.open("settings.json", "r", encoding="utf-8") as f:
             try:
@@ -42,7 +40,7 @@ class ShotSettingsSingleton:
 
 
 class ShotResult:
-    def __init__(self, filename="last_shot_result.json"):
+    def __init__(self, filename="data/last_shot_result.json"):
         self.settings = ShotSettingsSingleton()
         self.filename = filename
         self.shot_data = {
@@ -99,7 +97,7 @@ class ShotResult:
 
 
 class SelectClub:
-    def __init__(self, filename: str = "selected_club.json"):
+    def __init__(self, filename: str = "data/selected_club.json"):
         self.settings = ShotSettingsSingleton()  # shared state
         self.filename = filename
 
