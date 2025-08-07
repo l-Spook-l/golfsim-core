@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data_base.repositories.base import BaseRepository
@@ -56,6 +56,13 @@ class GolfShotRepository(BaseRepository):
             )
             result = await self.session.execute(query)
             last_shot = result.mappings().fetchone()
+            if last_shot is None:
+                return {
+                    "carry": 0.0,
+                    "ball_speed": 0.0,
+                    "angle_v": 0.0,
+                    "angle_h": 0.0,
+                }
             return last_shot
         except Exception as error:
             logger.error(f"Error occurred while reading last data: {error}", exc_info=True)
