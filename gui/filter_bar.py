@@ -18,7 +18,9 @@ class FilterBar:
         self.open_filter_btn = ft.Container()
         self.date_range_text = ft.Text()
         self.select_club = ""
-
+        self.sort_by = "date"
+        self.sort_desc = True
+        self.limit_records = 10
         self.golf_list_clubs = (
             "All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
             "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
@@ -31,10 +33,12 @@ class FilterBar:
             return date.strftime('%Y-%m-%d') if date else datetime.now().strftime('%Y-%m-%d')
 
     async def update_table_data(
-            self, days: int = None,
-            club: str = "",
-            sort_by: str = "date",
-            sort_desc: bool = True
+            self,
+            days: int = None,
+            club: str = None,
+            sort_by: str = None,
+            sort_desc: bool = None,
+            limit_records: int = None,
     ) -> None:
         if days:
             self.start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
@@ -92,6 +96,21 @@ class FilterBar:
             ],
             width=150,
             bgcolor="#E8F5E9"
+        )
+
+    def update_records_per_page(self) -> ft.Dropdown:
+        async def dropdown_changed_records_per_page(value):
+            await self.update_table_data(limit_records=value.data)
+
+        return ft.Dropdown(
+            label="Per page",
+            options=[
+                ft.dropdown.Option("10"),
+                ft.dropdown.Option("20"),
+                ft.dropdown.Option("50"),
+            ],
+            value="10",
+            on_change=dropdown_changed_records_per_page
         )
 
     def quick_date_filter(self) -> ft.Container:

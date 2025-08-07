@@ -18,13 +18,14 @@ class GolfShotTable:
     async def load_data(
             start_date: datetime = None,
             end_date: datetime = None,
-            club: str = "",
+            club: str = None,
             sort_by: str = "date",
-            sort_desc: bool = True
+            sort_desc: bool = True,
+            limit_records: int = 10
     ) -> list:
         async with async_session_maker() as session:
             repo = GolfShotRepository(session)
-            golf_shots = await repo.get_all_shots(start_date, end_date, club, sort_by, sort_desc)
+            golf_shots = await repo.get_all_shots(start_date, end_date, club, sort_by, sort_desc, limit_records)
         return [GolfShotsSchema(**golf_shot.__dict__).as_list() for golf_shot in golf_shots]
 
     async def load_stat_table(self, data=None) -> ft.Container:

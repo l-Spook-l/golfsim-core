@@ -27,30 +27,21 @@ class GolfShotRepository(BaseRepository):
             self,
             start_date: datetime = None,
             end_date: datetime = None,
-            club: str = "",
+            club: str = None,
             sort_by: str = "date",
-            sort_desc: bool = True
+            sort_desc: bool = True,
+            limit_records: int = 10
     ):
         try:
             query = select(GolfShot)
             if start_date and end_date:
-                query = query.where(GolfShot.date >= start_date, GolfShot.date <= end_date)
+                query = query.where(GolfShot.date >= start_date, GolfShot.date < (end_date + timedelta(days=1)))
             if club:
                 query = query.where(GolfShot.club == club)
-
-            sort_column = getattr(GolfShot, sort_by, GolfShot.date)
-
-            query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
-
+            sort_column = getattr(GolfShot, sort_by)
+            query = query.order_by(desc(sort_column) if sort_desc else asc(sort_column))
+            query = query.limit(limit_records)
             result = await self.session.execute(query)
-            # total_count = await session.scalar(
-            #     select(func.count())
-            #     .select_from(Workout)
-            #     .filter(GolfShot.is_public)
-            #     .filter(GolfShot.name.ilike(query_name) if name else True)
-            #     .filter(GolfShot.difficulty.in_(difficulty) if difficulty else True)
-            # )
-
             return result.scalars().fetchall()
         except Exception as error:
             logger.error(f"Error occurred while reading data: {error}", exc_info=True)

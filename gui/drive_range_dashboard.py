@@ -41,7 +41,6 @@ class DriveRangeDashboard:
         self.chart = ft.Text("Test tab")
 
     async def change_view_dashboard(self, e):
-        # Определяем текущий активный контент (график или таблица)
         current_tab = None
 
         match self.view_selector.selected_index:
@@ -58,11 +57,12 @@ class DriveRangeDashboard:
             self,
             start_date: datetime = None,
             end_date: datetime = None,
-            club: str = "",
-            sort_by: str = "date",
-            sort_desc: bool = True,
+            club: str = None,
+            sort_by: str = None,
+            sort_desc: bool = None,
+            limit_records: int = None,
     ):
-        data = await GolfShotTable().load_data(start_date, end_date, club, sort_by, sort_desc)
+        data = await GolfShotTable().load_data(start_date, end_date, club, sort_by, sort_desc, limit_records)
         self.table = await self.load_table.load_stat_table(data)
         self.dashboard_content.content = self.table
         self.dashboard_content.update()
@@ -78,31 +78,9 @@ class DriveRangeDashboard:
             on_change=self.change_view_dashboard,
             tabs=[
                 ft.Tab(text="Table"),
-                ft.Tab(text="Graph"),  # график временно убран
             ],
             label_color="black"
         )
-
-        # async def change_view(e):
-        #     # nonlocal chart
-        #     if s.toggle:
-        #         chart_with_padding.content = load_stat_graph(page)  # LineChart
-        #         # chart = load_stat_graph(page)  # LineChart
-        #
-        #         # chart.interactive = True
-        #     else:
-        #         chart_with_padding.content = await load_stat_tab()  # DataTable
-        #         # chart = load_stat_tab()  # DataTable
-        #
-        #         # chart.interactive = False
-        #     # page.add(chart)
-        #
-        #     s.toggle = not s.toggle
-        #     chart_with_padding.update()
-        #     # chart = chart_with_padding
-        #
-        #     # chart.update()
-        #     # page.update()
 
         # Оборачиваем график в контейнер для отступов
         self.dashboard_content = ft.Container(
@@ -123,4 +101,3 @@ class DriveRangeDashboard:
         )
 
         return self.tab_content
-
