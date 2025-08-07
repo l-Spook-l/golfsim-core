@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 
-class GolfShotSchema(BaseModel):
+class LastGolfShotSchema(BaseModel):
     carry: float = Field(..., title="Carry (yd)")
     ball_speed: float = Field(..., title="Ball (mph)")
     angle_v: float = Field(..., title="Launch V")
@@ -15,7 +15,7 @@ class GolfShotSchema(BaseModel):
 
 class GolfShotsSchema(BaseModel):
     id: int
-    club: str = 'default_club'  # Значение по умолчанию
+    club: str
     ball_speed: float
     angle_v: float
     angle_h: float
@@ -23,7 +23,7 @@ class GolfShotsSchema(BaseModel):
     roll: float
     total: float
     lateral: float
-    spin: float
+    spin: int
     date: datetime
 
     def as_list(self) -> list[str]:
@@ -43,7 +43,7 @@ class GolfShotsSchema(BaseModel):
 
 
 class HSVSettingSchema(BaseModel):
-    profile_name: str = Field(max_length=15, description="Profile name (maximum 15 characters)")
+    profile_name: str = Field(min_length=1, max_length=15, description="Profile name (maximum 15 characters)")
     hue_min: int
     hue_max: int
     saturation_min: int
