@@ -26,12 +26,13 @@ class HSVSetting(Base):
     __tablename__ = 'hsv_settings'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    profile_name: Mapped[str] = mapped_column(String(length=99), nullable=False, unique=True)
+    profile_name: Mapped[str] = mapped_column(String(length=20), nullable=False, unique=True)
     hue_min: Mapped[int]
     hue_max: Mapped[int]
     saturation_min: Mapped[int]
     saturation_max: Mapped[int]
     value_min: Mapped[int]
+    photo: Mapped[str | None]
     value_max: Mapped[int]
     is_active: Mapped[bool] = mapped_column(default=False)
 
@@ -40,6 +41,6 @@ class PixelDistance(Base):
     __tablename__ = 'pixel_distance'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    profile_name: Mapped[str] = mapped_column(String(length=99), nullable=False, unique=True)
+    profile_name: Mapped[str] = mapped_column(String(length=20), nullable=False, unique=True)
     pixels_per_cm: Mapped[int] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(default=False)
