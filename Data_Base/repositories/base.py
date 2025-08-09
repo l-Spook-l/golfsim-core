@@ -12,7 +12,7 @@ class BaseRepository:
         self.session = session
         self.MAX_PROFILES = 10
 
-    async def delete_by_id(self, model: Type[Base], obj_id):
+    async def delete_by_id(self, model: Type[Base], obj_id) -> bool:
         try:
             query = delete(model).where(model.id == obj_id)
             await self.session.execute(query)
@@ -20,5 +20,5 @@ class BaseRepository:
             return True
         except Exception as e:
             await self.session.rollback()
-            logger.error(f"Ошибка при удалении из  {e}")
+            logger.error(f"Error while deleting from {e}")
             return False
