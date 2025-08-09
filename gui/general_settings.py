@@ -95,7 +95,7 @@ class GeneralSettings:
                                             ft.Text(f"vmax: {hsv_data.hue_max}", size=18),
                                         ]),
                                         ft.Image(
-                                            src="mobile_uploads/images/profile_images/photo.jpg",
+                                            src=hsv_data.photo,
                                             fit=ft.ImageFit.COVER,
                                             width=200,
                                             height=200,
@@ -152,7 +152,7 @@ class GeneralSettings:
         )
 
         image_section = ft.Image(
-            src="mobile_uploads/images/profile_images/photo.jpg",
+            src=data.photo,
             fit=ft.ImageFit.COVER,
             width=200,
             height=200,
