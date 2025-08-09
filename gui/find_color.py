@@ -1,6 +1,7 @@
 import base64
 import os
 import asyncio
+import shutil
 from io import BytesIO
 
 import cv2
@@ -20,6 +21,8 @@ class FindBallByColor:
         self.active_task = None
         self.stop_event = asyncio.Event()
         self.hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 255, 'smax': 255, 'vmax': 255}
+        self.image_path = "mobile_uploads/images/photo.jpg"
+        self.image_src = ""
         self.img_color = None
         self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
         self.controls_column = ft.Column()
@@ -40,9 +43,13 @@ class FindBallByColor:
             data = await repo.get_active_hsv_set()
             logger.info(f"Data active_hsv - {data.id}")
 
-    async def save_hsv_values(self, hsv_value: dict, profile_name: str):
-        # Получаем сессию
+    async def save_hsv_values(self, hsv_value: dict, profile_name: str) -> None:
+        if len(profile_name) < 2:
+            self.show_snackbar("Profile name too short", "error")
+            return None
         logger.info('add_hsv_value -- hsv_value - ', hsv_value)
+        new_folder = "mobile_uploads/images/profile_images/"
+        new_name = f"{profile_name.replace(' ', '-')}.jpg".lower()
         mapping = {
             "hmin": "hue_min",
             "hmax": "hue_max",
@@ -53,7 +60,7 @@ class FindBallByColor:
         }
         mapped_data = {mapping[k]: v for k, v in hsv_value.items()}
         mapped_data['profile_name'] = profile_name
-        # mapped_data['is_active'] = True
+        mapped_data["photo"] = f"{new_folder}{new_name}"
 
         try:
             async with async_session_maker() as session:
@@ -62,24 +69,24 @@ class FindBallByColor:
                 if success:
                     logger.info("Data added successfully")
                     self.show_snackbar("HSV settings have been successfully saved", "success")
+                    shutil.copy(self.image_path, mapped_data["photo"])
                 else:
                     logger.info("Failed to add data")
+                    self.show_snackbar("Failed to add data", "error")
         except ProfileNameAlreadyExistsError:
             self.show_snackbar("A profile with this name already exists", "error")
         except ProfileLimitReachedError:
             self.show_snackbar("You have reached the maximum number of profiles allowed", "error")
-
         self.controls_column.update()
 
     async def process_image(self, hsv_vals):
-        image_path = "folder_test_all_open/photo.jpg"
-        """Обрабатывает изображение и возвращает цветовую маску."""
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Image file not found: {image_path}")
+        """Processes an image and returns a color mask."""
+        if not os.path.exists(self.image_path):
+            raise FileNotFoundError(f"Image file not found: {self.image_path}")
 
-        img = cv2.imread(image_path)
+        img = cv2.imread(self.image_path)
         if img is None:
-            raise ValueError(f"Failed to load image: {image_path}")
+            raise ValueError(f"Failed to load image: {self.image_path}")
 
         # img = img[200:700, :]  # Обрезаем изображение
         color_finder = ColorFinder(False)
