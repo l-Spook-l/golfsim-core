@@ -122,7 +122,7 @@ class FindBallByColor:
 
             await asyncio.sleep(0.05)  # Даем небольшую паузу, чтобы снизить нагрузку
 
-    async def load_hsv_tab(self):
+    async def build_section(self) -> ft.Row:
         """Загружает вкладку HSV-настроек и управляет асинхронной задачей."""
 
         def update_hsv(_):
