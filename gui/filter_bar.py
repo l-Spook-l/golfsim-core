@@ -130,14 +130,18 @@ class FilterBar:
                 ft.Column([
                     ft.Row([
                         ft.ElevatedButton("Last 7 Days",
+                                          width=100,
                                           on_click=lambda e: self.page.run_task(self.update_table_data, days=7)),
                         ft.ElevatedButton("Last 30 Days",
+                                          width=100,
                                           on_click=lambda e: self.page.run_task(self.update_table_data, days=30)),
                     ]),
                     ft.Row([
                         ft.ElevatedButton("Last 90 Days",
+                                          width=100,
                                           on_click=lambda e: self.page.run_task(self.update_table_data, days=90)),
                         ft.ElevatedButton("Last Year",
+                                          width=100,
                                           on_click=lambda e: self.page.run_task(self.update_table_data, days=360)),
                     ]),
                 ]),
@@ -158,8 +162,8 @@ class FilterBar:
             ft.Row([
                 ft.IconButton(
                     icon=ft.Icons.CALENDAR_MONTH,
-                    # tooltip="Pick start date",
-                    # icon_color="#007ACC",
+                    tooltip="Pick start date",
+                    icon_color="#007ACC",
                     on_click=lambda _: self.page.open(
                         ft.DatePicker(
                             first_date=datetime(year=1923, month=1, day=1),
@@ -167,15 +171,14 @@ class FilterBar:
                             on_change=handle_change_start,
                         )
                     ),
-                    # style=ft.ButtonStyle(shape=ft.CircleBorder(), padding=ft.padding.all(6))
                 ),
                 ft.TextField(label="Start Date", value=self.start_date.strftime('%Y-%m-%d'), read_only=True, width=150)
             ]),
             ft.Row([
                 ft.IconButton(
                     icon=ft.Icons.CALENDAR_MONTH,
-                    # tooltip="Pick end date",
-                    # icon_color="#007ACC",
+                    tooltip="Pick end date",
+                    icon_color="#007ACC",
                     on_click=lambda _: self.page.open(
                         ft.DatePicker(
                             first_date=self.start_date,
@@ -183,7 +186,6 @@ class FilterBar:
                             on_change=handle_change_end,
                         )
                     ),
-                    # style=ft.ButtonStyle(shape=ft.CircleBorder(), padding=ft.padding.all(6))
                 ),
                 ft.TextField(label="End Date", value=self.end_date.strftime('%Y-%m-%d'), read_only=True, width=150)
             ]),
@@ -198,9 +200,8 @@ class FilterBar:
                 self.quick_date_filter(),
                 ft.Divider(),
                 self.calendar_date_filter()
-            ], height=280),
+            ], height=270),
             actions=[
-                ft.TextButton("Apply", on_click=lambda e: self.page.close(self.dlg_modal)),
                 ft.TextButton("Cancel", on_click=lambda e: self.page.close(self.dlg_modal))
             ],
         )
