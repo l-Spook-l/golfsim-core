@@ -57,7 +57,7 @@ class HomeView:
         )
 
     def update_section(self, section_name: str) -> None:
-        self.current_section_name["name"] = section_name
+        self.current_section_name = section_name
         match section_name:
             case "drive-range":
                 self.current_section.content = ft.Column([
@@ -110,45 +110,6 @@ class HomeView:
                 self.latest_shot_data = new_shot_data
                 self.last_shot_section = await LastShotSection(new_shot_data).build_section()
                 if self.current_section_name == "drive-range":
+                    self.drive_range_dashboard = await DriveRangeDashboard().build_section()
                     self.update_section("drive-range")
                 last_data = new_shot_data
-
-
-    def update_view(route: str):
-        match route:
-            case "/drive-range":
-                current_view.content = ft.Column([
-                    ft.Row([
-                        button_return_home,
-                        header_selected_section("Drive range")
-                    ]),
-                    drive_range
-                ])
-            case "/putting":
-                current_view.content = ft.Column([
-                    button_return_home,
-                    ft.Text("🎯 Putting view", size=30)
-                ])
-            case "/play-course":
-                current_view.content = ft.Column([
-                    button_return_home,
-                    ft.Text("⛳ Play Course view", size=30)
-                ])
-        current_view.update()
-
-    home = ft.Container(
-        content=ft.Row(
-            controls=[
-                build_card("/drive-range", "menu/drive-range.png"),
-                build_card("/putting", "menu/putting.png"),
-                build_card("/play-course", "menu/play-course.png"),
-            ],
-            expand=True,
-            spacing=0
-        ),
-        expand=True
-    )
-
-    current_view.content = home
-
-    return current_view
