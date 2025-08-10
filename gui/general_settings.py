@@ -27,11 +27,8 @@ class GeneralSettings:
 
     @classmethod
     async def save_to_json(cls, field: str, value: str, file_path: str = "settings.json"):
-        # 1. Прочитать файл, если он существует
         data = await load_settings()
-        # 2. Изменяем только нужное значение
         data[field] = value
-        # 3. Записываем измененные данные обратно в файл
         async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
             await f.write(json.dumps(data, indent=4))
         logger.info(f"Theme updated: {value}")
@@ -199,21 +196,17 @@ class GeneralSettings:
             width=150,
         )
 
-        general = ft.Container(
-            content=ft.Column(
-                [
-                    ft.Text("General"),
-                    ft.Row([
-                        ft.Text('Theme:'),
-                        ft.Switch(
-                            on_change=self.change_theme
-                        )
-                    ]),
-                ]
-            ),
-            bgcolor=ft.Colors.ORANGE_100,
+        theme = ft.Container(
+            content=ft.Row([
+                ft.Text('Theme:', size=20),
+                ft.Switch(
+                    on_change=self.change_theme
+                )
+            ]),
             padding=10,
             width=200,
+            bgcolor="#E4E7EB",
+            border_radius=10
         )
 
         simulator = ft.Container(
@@ -223,20 +216,21 @@ class GeneralSettings:
             ]),
             padding=10,
             width=200,
+            bgcolor="#E4E7EB",
+            border_radius=10
         )
 
         self.container_section = ft.Container(
             content=ft.Row(
                 [
                     ft.Column([
-                        general,
+                        theme,
                         simulator,
                     ]),
                     self.active_hsv_set
                 ],
                 spacing=20,
             ),
-            bgcolor=ft.Colors.ORANGE_800,
             padding=20
         )
 
