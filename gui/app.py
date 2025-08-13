@@ -1,3 +1,5 @@
+import asyncio
+
 import flet as ft
 
 from gui.app_context import AppContext
@@ -41,14 +43,29 @@ async def app(page: ft.Page) -> None:
         expand=1,
     )
 
-    button_exit_app = ft.IconButton(
-        icon=ft.Icons.EXIT_TO_APP,
-        on_click=lambda e: page.window.destroy(),
-        icon_size=35
-    )
+    async def handle_window_event(e):
+        if e.data == "close":
+            page.window.destroy()
 
+    # TODO: Add a button to exit and close the application
+    # exit_button = ft.IconButton(
+    #     icon=ft.Icons.EXIT_TO_APP,
+    #     on_click=lambda e: page.window.close(),
+    #     icon_size=35,
+    #     tooltip="Закрыть приложение",
+    # )
+
+    page.window.on_event = handle_window_event
     page.add(tabs)
 
 
-async def start_flet():
-    await ft.app_async(target=app, assets_dir="assets")
+async def start_flet(shutdown_event: asyncio.Event = None):
+    try:
+        await ft.app_async(
+            target=app,
+            assets_dir="assets",
+            view=ft.FLET_APP
+        )
+    finally:
+        if shutdown_event:
+            shutdown_event.set()
