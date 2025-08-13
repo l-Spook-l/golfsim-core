@@ -6,17 +6,12 @@ from gui.tab_settings import SettingsView
 from utils import load_settings
 
 
-async def main(page: ft.Page) -> None:
+async def app(page: ft.Page) -> None:
     AppContext.set_page(page)
     page.title = "GolfSim"
-
     page.window.maximized = True
-
-    # Устанавливаем размер окна и позиционируем его по центру
-    page.window.width = 1700
-    page.window.height = 900
-    page.window.min_width = 680  # Минимальная ширина окна
-    page.window.min_height = 420  # Минимальная высота окна
+    page.window.min_width = 680
+    page.window.min_height = 420
     page.bgcolor = "#F4F4F6"
     page.padding = 0
 
@@ -24,10 +19,10 @@ async def main(page: ft.Page) -> None:
     page.theme_mode = ft.ThemeMode.DARK if theme["theme"] == "dark" else ft.ThemeMode.LIGHT
 
     home_view = HomeView()
-    home = await home_view.init()  # получаешь визуальный элемент (Container)
+    home = await home_view.init()
 
-    settings_view = SettingsView()  # создаёшь объект
-    settings = await settings_view.init()  # получаешь визуальный элемент (Container)
+    settings_view = SettingsView()
+    settings = await settings_view.init()
 
     tabs = ft.Tabs(
         selected_index=0,
@@ -56,4 +51,4 @@ async def main(page: ft.Page) -> None:
 
 
 async def start_flet():
-    await ft.app_async(target=main, assets_dir="assets")
+    await ft.app_async(target=app, assets_dir="assets")
