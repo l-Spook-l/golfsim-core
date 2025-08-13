@@ -19,3 +19,5 @@ app.log
 gui/app.log
 web_server/app.log
 plan.txt
+mobile_uploads/golf_shots/*
+mobile_uploads/images/*
