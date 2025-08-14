@@ -151,8 +151,6 @@ class FindBallByColor:
                                       inactive_color=ft.Colors.GREY)
                             for key in ['hmax', 'smax', 'vmax']]
 
-        # hmin_text, smin_text, vmin_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmin', 'smin', 'vmin']]
-        # hmax_text, smax_text, vmax_text = [ft.Text(f"{key}: {hsv_vals[key]}") for key in ['hmax', 'smax', 'vmax']]
         hmin_text = ft.Text(f"Hue Min: {self.hsv_vals['hmin']}")
         smin_text = ft.Text(f"Saturation Min: {self.hsv_vals['smin']}")
         vmin_text = ft.Text(f"Value Min: {self.hsv_vals['vmin']}")
@@ -185,9 +183,6 @@ class FindBallByColor:
             vmax_text, vmax,
             save_profile_button,
         ])
-
-        # Контроль для отображения изображения
-        # self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
 
         self.tab_content = ft.Row([
             ft.Container(content=self.controls_column, bgcolor="#E4E7EB", padding=10, margin=5, border_radius=10),
