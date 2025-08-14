@@ -14,13 +14,14 @@ async def main():
     tasks = {
         "flet": asyncio.create_task(start_flet(shutdown_event)),
         "server": asyncio.create_task(server.start()),
-        "watcher": asyncio.create_task(watcher.check_folder())
+        "watcher": asyncio.create_task(watcher.check_folder()),
+        "shutdown": asyncio.create_task(shutdown_event.wait())
     }
 
     try:
         # Ждем либо shutdown_event, либо завершения любой задачи
         done, pending = await asyncio.wait(
-            [shutdown_event.wait(), *tasks.values()],
+            list(tasks.values()),
             return_when=asyncio.FIRST_COMPLETED
         )
 
