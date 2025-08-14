@@ -11,6 +11,3 @@ def get_local_ip() -> str:
     finally:
         s.close()
     return local_ip
-
-
-print(f"Local IP address: {get_local_ip()}")
