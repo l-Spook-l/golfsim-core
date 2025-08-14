@@ -37,12 +37,6 @@ class FindBallByColor:
         )
         self.page.update()
 
-    async def get_active_hsv_profile(self):
-        async with async_session_maker() as session:
-            repo = HSVSettingRepository(session)
-            data = await repo.get_active_hsv_set()
-            logger.info(f"Data active_hsv - {data.id}")
-
     async def save_hsv_values(self, hsv_value: dict, profile_name: str) -> None:
         if len(profile_name) < 2:
             self.show_snackbar("Profile name too short", "error")
@@ -166,21 +160,15 @@ class FindBallByColor:
         smax_text = ft.Text(f"Saturation Max: {self.hsv_vals['smax']}")
         vmax_text = ft.Text(f"Value Max: {self.hsv_vals['vmax']}")
 
-        active_profile_info = ft.Container(
-            content=await self.get_active_hsv_profile(),
-            bgcolor=ft.Colors.YELLOW_800,
-            height=100,
-            width=500
+        profile_name_field = ft.TextField(
+            label="Profile name",
+            width=200,
+            max_length=20,
         )
 
         async def handle_save_button_click(e):
             await self.save_hsv_values(self.hsv_vals, profile_name_field.value)
 
-        profile_name_field = ft.TextField(
-            label="Profile name",
-            width=200,
-            max_length=15,
-        )
         save_profile_button = ft.ElevatedButton(
             text="Save HSV values",
             on_click=handle_save_button_click
@@ -202,12 +190,11 @@ class FindBallByColor:
         # self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
 
         self.tab_content = ft.Row([
-            # active_profile_info,
             ft.Container(content=self.controls_column, bgcolor="#E4E7EB", padding=10, margin=5, border_radius=10),
             ft.Container(content=self.image_control, bgcolor="#E4E7EB", padding=10, border_radius=10),
         ])
 
-        # **ОСТАНАВЛИВАЕМ старую асинхронную задачу, если она уже работает**
+        # ОСТАНАВЛИВАЕМ старую асинхронную задачу, если она уже работает
         if self.active_task is not None:
             self.stop_event.set()  # Останавливаем цикл в `opencv_task`
             try:
@@ -215,7 +202,7 @@ class FindBallByColor:
             except asyncio.CancelledError:
                 logger.info("The previous OpenCV process has been successfully stopped")
 
-        # **Запускаем новую асинхронную задачу**
+        # Запускаем новую асинхронную задачу
         self.stop_event.clear()  # Разрешаем новый запуск
         self.active_task = asyncio.create_task(self.update_image_with_hsv(self.hsv_vals, self.image_control))
 
