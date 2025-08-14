@@ -11,7 +11,7 @@ async def load_settings() -> dict:
         async with aiofiles.open("settings.json", "r", encoding="utf-8") as f:
             try:
                 content = await f.read()
-                if content.strip():  # Проверка на пустоту
+                if content.strip():
                     data = json.loads(content)
                 else:
                     logger.info("Файл пустой. Создаём заново.")
@@ -98,7 +98,7 @@ class ShotResult:
 
 class SelectClub:
     def __init__(self, filename: str = "data/selected_club.json"):
-        self.settings = ShotSettingsSingleton()  # shared state
+        self.settings = ShotSettingsSingleton()
         self.filename = filename
 
     @property

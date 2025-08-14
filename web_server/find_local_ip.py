@@ -4,7 +4,6 @@ import socket
 def get_local_ip() -> str:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # Подключаемся к публичному DNS серверу Google
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
     except Exception as e:
