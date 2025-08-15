@@ -1,7 +1,8 @@
 import os
 import asyncio
 
-from find_ball import find_golf_ball
+# from find_ball import find_golf_ball
+from find_ball import VideoProcessor
 from logging_config import logger
 
 
@@ -32,7 +33,7 @@ class FolderWatcher:
                 for file_name in new_files:
                     if file_name.lower().endswith(('.mp4', '.avi', '.mov')):
                         logger.info(f"Processing new video: {file_name}")
-                        await find_golf_ball(file_name)
+                        await VideoProcessor(file_name).run()
 
                 self.processed_videos.update(new_files)
 
@@ -60,8 +61,8 @@ class FolderWatcher:
         logger.info("Stopping folder watcher...")
         self.__running = False
 
-        if hasattr(find_golf_ball, 'close'):
-            await find_golf_ball.close()
+        # if hasattr(find_golf_ball, 'close'):
+        #     await find_golf_ball.close()
 
         logger.info("Folder watcher stopped gracefully")
 

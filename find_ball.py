@@ -1,274 +1,182 @@
 import asyncio
-
+import json
 import cv2
 import cvzone
+import aiofiles
+import datetime
 
-import find_angle
+from data_base.schemas import HSVSettingSchema
 from data_base.config_db import async_session_maker
-from data_base.db import DataBase
-from config import hsvVals, frames_in_second, myColorFinder, min_area
-from utils import ShotResult
+from data_base.repositories.golf_shot import GolfShotRepository
+from data_base.repositories.hsv_setting import HSVSettingRepository
+from find_angle import AngleCalculator
+from shot_analysis.parser import get_shot_result
+from config import myColorFinder, FRAMES_IN_SECOND, MIN_AREA
+from utils import ShotResult, SelectClub
 
 
-"""
-Посчитать сколько пикселей проходишь по горизонтали 
-Посчитать сколько пикселей проходишь по вертикали
-сложить и получить ответ
-"""
+class HSVSettingsManager:
+    @staticmethod
+    async def get_active_hsv() -> dict:
+        key_mapping = {
+            "hmin": "hue_min",
+            "smin": "saturation_min",
+            "vmin": "value_min",
+            "hmax": "hue_max",
+            "smax": "saturation_max",
+            "vmax": "value_max",
+        }
+
+        async with async_session_maker() as session:
+            repo = HSVSettingRepository(session)
+            orm_obj = await repo.get_active_hsv_set()
+            hsv_dict = HSVSettingSchema.model_validate(orm_obj).model_dump()
+
+        return {new: hsv_dict[old] for new, old in key_mapping.items()}
 
 
-# X - horizont
-# Y - vertical
+class ShotDataManager:
+    @staticmethod
+    async def save_shot(shot_result: dict):
+        async with async_session_maker() as session:
+            repo = GolfShotRepository(session)
+            await repo.add_new_shot(shot_result)
 
-# =====================================================================================================================
+    @staticmethod
+    async def get_spin_for_club(club: str) -> int:
+        async with aiofiles.open("data/clubs.json", "r", encoding='utf-8') as file:
+            clubs = await file.read()
+            clubs_data = json.loads(clubs)
+            return clubs_data.get(club).get("spin_rate_average")
 
-async def add_data_db(shot_result: dict):
-    # Получаем сессию
-    async with async_session_maker() as session:
-        # Вызываем метод add_data с передачей сессии
-        success = await DataBase.add_data(shot_result, session=session)
-        if success:
-            print("Data added successfully")
+
+class GolfBallTracker:
+    def __init__(self, hsv_vals, frame_time):
+        self.hsv_vals = hsv_vals
+        self.frame_time = frame_time
+        self.angle_calculator = AngleCalculator()
+        self.shot_selected_club = SelectClub()
+        self.set_shot_result = ShotResult()
+        self.reset()
+
+    def reset(self):  # мб поменять название
+        self.pos_list = []
+        self.list_counter = 1
+        self.counter = -1
+        self.distance_pix_x = 0
+        self.distance_pix_y = 0
+        self.distance_cm_x = 0
+        self.distance_cm_y = 0
+        self.distance_list_x = []
+        self.distance_list_y = []
+        self.speed = 0
+        self.speed_x = 0
+        self.speed_y = 0
+        self.max_speed = 0
+        self.coordinates_angle = []
+        self.len_pos_list = 0
+        self.frame_count = 0
+        self.seconds = 0
+
+    def process_frame(self, frame):
+        self.frame_count += 1
+        self.seconds += self.frame_time
+        img_color, mask = myColorFinder.update(frame, self.hsv_vals)
+        img_contours, contours, width, high, area = cvzone.findContours(frame, mask, minArea=MIN_AREA)
+
+        if contours:
+            self._update_positions(contours[0]['center'])
         else:
-            print("Failed to add data")
+            if len(self.pos_list) > 10:
+                return self._finalize_shot()
+
+        return None
+
+    def _update_positions(self, center):
+        if center not in self.pos_list:
+            self.pos_list.append(center)
+            self.counter += 1
+
+        if len(self.pos_list) > self.len_pos_list:
+            self.len_pos_list = len(self.pos_list)
+            self.distance_pix_x += self.pos_list[self.counter][0] - self.pos_list[self.counter - 1][0]
+            self.distance_pix_y += self.pos_list[self.counter - 1][1] - self.pos_list[self.counter][1]
+
+            self.distance_cm_x = self.distance_pix_x / 30
+            self.distance_cm_y = self.distance_pix_y / 30
+
+            self.distance_list_x.append(self.distance_cm_x)
+            self.distance_list_y.append(self.distance_cm_y)
+
+            self.speed_x = ((self.distance_cm_x - self.distance_list_x[len(self.distance_list_x) - 2]) / self.frame_time) / 100
+            self.speed_y = ((self.distance_cm_y - self.distance_list_y[len(self.distance_list_y) - 2]) / self.frame_time) / 100
+            self.speed = ((self.speed_x ** 2) + (self.speed_y ** 2)) ** 0.5
+
+            if self.speed > self.max_speed:
+                self.max_speed = round(self.speed, 2)
+
+    def _finalize_shot(self):
+        self.coordinates_angle = [self.pos_list[7], self.pos_list[-1], [self.pos_list[-1][0], self.pos_list[7][1]]]
+        angle = self.angle_calculator.get_angle(self.coordinates_angle)
+        club = self.shot_selected_club.club
+        return {
+            "max_speed": self.max_speed,
+            "angle": angle,
+            "club": club
+        }
 
 
-async def find_golf_ball(name_vidio_file: str = None):
-    # cap = cv2.VideoCapture(f'folder_test_all_open/{name_vidio_file}')
+class ShotAnalyzer:
+    def __init__(self, tracker: GolfBallTracker, data_manager: ShotDataManager):
+        self.tracker = tracker
+        self.data_manager = data_manager
 
-    set_shot_result = ShotResult()
-    # Список для позиций
-    pos_list = []
-    # Счетчик списков которые были сохранены
-    list_counter = 1
-    # Счетчик количества координат, -1 для лучшего обращения к списку
-    counter = -1
-    # Дистанция в пикселях по горизонтали (X) (вперед) и по вертикали (Y) (вверх)
-    distance_pix_x, distance_pix_y = 0, 0
-    # Дистанция по осям (X, Y)
-    distance_cm_x, distance_cm_y = 0, 0
-    # Для сохранения расстояния по горизонтали (X)
-    distance_list_x = []
-    # Для сохранения расстояния по вертикали (Y)
-    distance_list_y = []
-    # Скорость по осям X и Y, максимальная скорость
-    speed, speed_x, speed_y, max_speed = 0, 0, 0, 0
-    # Список для определения угла
-    coordinates_angle = []
-    # Для проверки на новые координаты
-    len_pos_list = 0
-    # Счетчик кадров
-    frame_count = 0
-    # Время в секундах
-    seconds = 0
-    # Список времени
-    # timeList = []
+    async def analyze_and_save(self, shot_data):
+        spin = await self.data_manager.get_spin_for_club(shot_data["club"])
+        if (shot_data["max_speed"] * 2.237 >= 45) and (5 <= shot_data["angle"] <= 45):
+            result = await get_shot_result(shot_data["max_speed"] * 2.237, shot_data["angle"], spin)
+        else:
+            result = {
+                "ball_speed": shot_data["max_speed"],
+                "angle_v": shot_data["angle"],
+                "spin": spin
+            }
+        result["club"] = shot_data["club"]
 
-    fps = frames_in_second["fps_240"]
+        await self.data_manager.save_shot(result)
+        self.tracker.set_shot_result.speed = shot_data["max_speed"]
+        self.tracker.set_shot_result.vertical_angle = shot_data["angle"]
+        self.tracker.set_shot_result.save_data()
+        self.tracker.reset()
 
-    import datetime
 
-    now = datetime.datetime.now()
-    # def find_golf_ball():
-    try:
-        while True:
-            # Обновляем счетчик кадров
-            frame_count += 1
+class VideoProcessor:
+    def __init__(self, name_video_file: str):
+        self.video_path = f'mobile_uploads/golf_shots/{name_video_file}'
 
-            # Время на 1 кадр
-            seconds += fps  # Для 240FPS
-            # timeList.append(seconds)  # Добавление времени кадра в список
+    async def run(self):
+        cap = cv2.VideoCapture(self.video_path)
 
-            print(f'Кадр - {frame_count}')
-            print(f'Время - {seconds} s')
-            print('-----------------------')
-            # print(f'Список времени - {timeList}')
+        hsv_manager = HSVSettingsManager()
+        hsv_vals = await hsv_manager.get_active_hsv()
+        frame_time = FRAMES_IN_SECOND["FPS_240"]
+        data_manager = ShotDataManager()
+        tracker = GolfBallTracker(hsv_vals, frame_time)
+        analyzer = ShotAnalyzer(tracker, data_manager)
 
-            # Рисунок для определения цвета мяча
-            # img = cv2.imread("image/Ball_test_img.png")
-            success, img = cap.read()
-            # if not success:
-            #     print(f"Конец видео или ошибка чтения кадра. Обработано {frame_count} кадров.")
-            #     break
-            # Находим цвет мяча
-            imgColor, mask = myColorFinder.update(img, hsvVals)
-
-            # Обводим контур мяча (находим самый большой контур, или чувствительность)
-            # imgContours, contours, www, my_area = cvzone.findContours(img, mask, minArea=2500)  # Для 30FPS и (60 FPS ?)
-            # imgContours, contours, my_area = cvzone.findContours(img, mask, minArea=7000)  # Для 120FPS
-            # imgContours, contours = cvzone.findContours(img, mask, minArea=1000)  # Для 120FPS
-            # imgContours, contours = cvzone.findContours(img, mask, minArea=5000)  # Для 240FPS
-            # imgContours, contours, www, my_area = cvzone.findContours(img, mask, minArea=3800)  # Онлайн камера 50см
-            # imgContours, contours = cvzone.findContours(img, mask, minArea=3800)  # Онлайн камера 50см
-            # imgContours, contours, www, my_area = cvzone.findContours(img, mask, minArea=1300)  # Онлайн камера 40см
-            # imgContours, contours, width, high = cvzone.findContours(img, mask, minArea=1000)  # Для 240FPS
-
-            # print('ширина квадрата = ', width)
-            # print('высота квадрата = ', high)
-            imgContours, contours, width, high, area = cvzone.findContours(img, mask, minArea=min_area)  # Для 240FPS
-            print('ширина квадрата = ', width)
-            print('высота квадрата = ', high)
-            print('площадь квадрата = ', area)
-            # print('imgContours', type(imgContours), imgContours)
-            # print('ширина квадрата = ', www)  # надо чтобы возвращалось 4 аргумента, а не 2 (findContours)
-            # print('площадь квадрата = ', my_area)
-
-            if contours:
-                # Координаты мяча
-                if contours[0]['center'] not in pos_list:
-                    # Добавляем найденные координаты в список
-                    pos_list.append(contours[0]['center'])
-                    # Счетчик количества координат
-                    counter += 1
-                print('список координат = ', pos_list)  # список координат
-                # print('counter = ', counter)
-                print('Координаты = ', contours[0]['center'])
-                # Если в списке координат что-то есть выводим разницу между пикселями
-                if len(pos_list) != 0:
-                    if len_pos_list < len(pos_list):
-                        # Обновляем счетчик длинны списка
-                        len_pos_list = len(pos_list)
-                        # Определяем пройденную длину в пикселях по горизонтали (X) (Вычитаем прошлую координату с текущей)
-                        distance_pix_x += pos_list[counter][0] - pos_list[counter - 1][0]
-                        # Определяем пройденную длину в пикселях по вертикали (Y) (Вычитаем прошлую координату с текущей)
-                        distance_pix_y += pos_list[counter - 1][1] - pos_list[counter][1]
-                        # Определяем пройденную длину по горизонтали (X) в сантиметрах
-                        # (Делим пройденную длину за один кадр в пикселях на 30 (1см - 30пикселей)
-                        distance_cm_x = distance_pix_x / 30  # 30 - для 120FPS и 240FPS, 10 - для (60 live) или (30 хз)
-                        # Определяем пройденную длину по вертикали (Y) в сантиметрах
-                        distance_cm_y = distance_pix_y / 30  # 30 - для 120FPS и 240FPS, 10 - для (60 live) или (30 хз)
-                        # Добавление дистанции в список по горизонтали (X)
-                        distance_list_x.append(distance_cm_x)
-                        # Добавление дистанции в список по вертикали (Y)
-                        distance_list_y.append(distance_cm_y)
-                        # Определяем скорость (скорость = расстояние / время), по осям X и Y
-                        speed_x = ((distance_cm_x - distance_list_x[len(distance_list_x) - 2]) / fps) / 100
-                        speed_y = ((distance_cm_y - distance_list_y[len(distance_list_y) - 2]) / fps) / 100
-                        # Получаем общую скорость, складывая скорости по осям X и Y
-                        # Speed = Speed_X + Speed_Y
-                        # Реальная скорость тела в некоторый момент времени - это
-                        # векторная сумма горизонтальной составляющей скорости Vx и вертикальной скорости Vy.
-                        # V = √(Vx² + Vy²)
-                        speed = ((speed_x ** 2) + (speed_y ** 2)) ** 0.5
-
-                        # Находим максимальную скорость
-                        if speed > max_speed:
-                            max_speed = round(speed, 2)
-
-                    print()
-                    print('Количество пикселей по X = ', pos_list[counter][0] - pos_list[counter - 1][0])
-                    print('Количество пикселей по Y = ', pos_list[counter - 1][1] - pos_list[counter][1])
-                    print()
-                    print(f'Дистанция по оси X = {distance_pix_x} пикселей')
-                    print(f'Дистанция по оси Y = {distance_pix_y} пикселей')
-                    print()
-                    print(f'Дистанция по оси X = {distance_cm_x} см')
-                    print(f'Дистанция по оси Y = {distance_cm_y} см')
-                    print()
-
-                    # print(f'Дистанция = {distanceCm} см')
-                    # print(f'Дистанция список X = {distanceList_X}')
-                    # print(f'Дистанция список Y = {distanceList_Y}')
-
-                    # Смотрим на пройденной расстояния за 1 кадр по осям (Вычитаем текущую дистанцию от прошлой)
-                    print(
-                        f'Пройденное расстояние за 1 кадр по оси X = {distance_cm_x - distance_list_x[len(distance_list_x) - 2]}')
-                    print(
-                        f'Пройденное расстояние за 1 кадр по оси Y = {distance_cm_y - distance_list_y[len(distance_list_y) - 2]}')
-                    print()
-                    # Скорость
-                    print(
-                        f'Скорость по оси X = {(distance_cm_x - distance_list_x[len(distance_list_x) - 2])} cm / {fps} s = '
-                        f'{(distance_cm_x - distance_list_x[len(distance_list_x) - 2]) / fps}')
-                    print(
-                        f'Скорость по оси Y = {(distance_cm_y - distance_list_y[len(distance_list_y) - 2])} cm / {fps} s = '
-                        f'{(distance_cm_y - distance_list_y[len(distance_list_y) - 2]) / fps}')
-                    print()
-                    print(f'Скорость по оси X = {speed_x} m/s')
-                    print(f'Скорость по оси Y = {speed_y} m/s')
-                    print(f'Скорость {speed} m/s')
-                    print(f'Макс. скорость {max_speed} m/s')
-
-                for i, pos in enumerate(pos_list):
-                    # Рисуем точку в найденных координатах
-                    cv2.circle(imgContours, pos, 5, (0, 255, 9), cv2.FILLED)
-                    if i == 0:
-                        cv2.line(imgContours, pos, pos, (0, 255, 0), 5)
-                    else:
-                        cv2.line(imgContours, pos, (pos_list[i - 1]), (0, 255, 0), 2)
-
-            # Если мяч не найден и список координат больше 10, то сохраняем данные в блокнот и очищаем список
-            elif len(pos_list) > 10:
-                # передаем последние две координаты для определения угла
-
-                # берем 7й кадр и последний
-                # pos_list[7]  pos_list[-1]   [pos_list[-1][0], pos_list[7][1]]
-                coordinates_angle.append(pos_list[7])
-                coordinates_angle.append(pos_list[-1])
-                coordinates_angle.append([pos_list[-1][0], pos_list[7][1]])
-
-                # Записываем в БД максимально найденную скорость и найденный угол
-                await add_data_db(max_speed, find_angle.get_angle(coordinates_angle), 280)
-
-                print(coordinates_angle)
-                # Запись найденной макс. скорости, для Unity
-                set_shot_result.speed = max_speed
-                set_shot_result.vertical_angle = angle
-                set_shot_result.save_data()
-
-                # Если мяч несколько раз будет в кадре, то записываем так
-                with open(f"Test_list/test_{list_counter}.txt", "a") as f:
-                    # Если мяч будет в кадре только 1 раз записываем так
-                    # with open(f"Test_list/test_{listCounter} {datetime.datetime.now().strftime('%H-%M-%S, (%d-%m-%Y)')}.txt", "a") as f:
-                    some_string_data = 'x; y'
-                    f.write(some_string_data)
-                    # Проходимся по всему списку
-                    for i in range(len(pos_list)):
-                        f.write(f'\n{pos_list[i][0]}; {pos_list[i][1]}')
-                # Очищаем список
-                pos_list.clear()
-                # Очищаем список для угла
-                coordinates_angle.clear()
-                # Обнуляем переменную длинны списка
-                len_pos_list = 0
-                # Обнуляем счетчик количества координат
-                counter = -1
-                # Счетчик списков(ударов)
-                list_counter += 1
-                # Обнуляем максимальную скорость
-                max_speed = 0
-                speed = 0
-
-            imgColor = cv2.resize(imgColor, (0, 0), None, 0.7, 0.7)
-            # Отображаем окна скорости
-            cvzone.putTextRect(imgContours, f"Speed : {round(speed, 2)} m/s", (0, 35), scale=3, offset=5)
-            cvzone.putTextRect(imgContours, f"Max Speed : {max_speed} m/s", (0, 80), scale=3, offset=5)
-            cvzone.putTextRect(imgContours, f"Time : {seconds} s", (0, 130), scale=3, offset=5)
-            cvzone.putTextRect(imgContours, f"Area : {area}", (0, 180), scale=3, offset=5)
-            cvzone.putTextRect(imgContours, f"width : {width}", (0, 375), scale=3, offset=5)
-            cvzone.putTextRect(imgContours, f"high : {high}", (0, 420), scale=3, offset=5)
-            # cv2.imshow("Image", img)
-            cv2.imshow("imgColor", imgColor)
-            cv2.imshow("imgContours", imgContours)  # Цветное изображение
-            # print('---------------------------------------------------------------------------------------------------------')
-            # print(len(posList))
-            # print(len(timeList))
-            # print(len(distanceList))
-            print(
-                '======================================================================================================')
-            if cv2.waitKey(1) & 0xFF == ord('q'):  # Нажатие 'q' для выхода
-                break
-        # Освобождаем ресурсы
-        cap.release()
-        cv2.destroyAllWindows()  # Закрываем все окна
-        print(f"Обработка видео завершена.")
-
-    except Exception as error:
-        print(f'error {error}')
-
-    finally:
-        print(f'time {datetime.datetime.now() - now}')
+        now = datetime.datetime.now()
+        try:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                shot_data = tracker.process_frame(frame)
+                if shot_data:
+                    await analyzer.analyze_and_save(shot_data)
+        finally:
+            cap.release()
+            print(f'time {datetime.datetime.now() - now}')
 
 
 if __name__ == "__main__":
-    asyncio.run(find_golf_ball())
+    asyncio.run(VideoProcessor("example.mp4").run())
