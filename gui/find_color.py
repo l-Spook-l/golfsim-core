@@ -8,7 +8,7 @@ import cv2
 import flet as ft
 from cvzone.ColorModule import ColorFinder
 
-from gui.app_context import AppContext
+from states.app_page_state import PageState
 from data_base.config_db import async_session_maker
 from data_base.repositories.hsv_setting import HSVSettingRepository
 from exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
@@ -17,7 +17,7 @@ from logging_config import logger
 
 class FindBallByColor:
     def __init__(self):
-        self.page = AppContext.get_page()
+        self.page = PageState.get_page()
         self.active_task = None
         self.stop_event = asyncio.Event()
         self.hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 255, 'smax': 255, 'vmax': 255}

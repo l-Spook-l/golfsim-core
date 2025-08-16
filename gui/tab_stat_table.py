@@ -2,15 +2,15 @@ from datetime import datetime
 
 import flet as ft
 
+from states.app_page_state import PageState
 from data_base.config_db import async_session_maker
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.schemas import GolfShotsSchema
-from gui.app_context import AppContext
 
 
 class GolfShotTable:
     def __init__(self):
-        self.page = AppContext.get_page()
+        self.page = PageState.get_page()
         self.data_shots = list()
         self.table = ft.Container()
 

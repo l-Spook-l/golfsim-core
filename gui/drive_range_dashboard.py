@@ -2,14 +2,14 @@ from datetime import datetime
 
 import flet as ft
 
+from states.app_page_state import PageState
 from gui.filter_bar import FilterBar
 from gui.tab_stat_table import GolfShotTable
-from gui.app_context import AppContext
 
 
 class DriveRangeDashboard:
     def __init__(self):
-        self.page = AppContext.get_page()
+        self.page = PageState.get_page()
         self.load_table = GolfShotTable()
         self.load_filter_bar = FilterBar(dashboard=self)
         self.table = ft.Container()

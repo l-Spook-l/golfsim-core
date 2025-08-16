@@ -2,15 +2,15 @@ from datetime import datetime, timedelta
 
 import flet as ft
 
+from states.app_page_state import PageState
 from data_base.config_db import async_session_maker
 from data_base.repositories.golf_shot import GolfShotRepository
-from gui.app_context import AppContext
 
 
 class FilterBar:
     def __init__(self, dashboard):
+        self.page = PageState.get_page()
         self.dashboard = dashboard
-        self.page = AppContext.get_page()
         self.calendar_date_filter_section = ft.Column()
         self.start_date: datetime | None = None
         self.end_date: datetime | None = None

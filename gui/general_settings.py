@@ -3,17 +3,17 @@ import json
 import flet as ft
 import aiofiles
 
+from states.app_page_state import PageState
 from data_base.config_db import async_session_maker
 from data_base.models import HSVSetting
 from data_base.repositories.hsv_setting import HSVSettingRepository
-from gui.app_context import AppContext
 from utils import load_settings
 from logging_config import logger
 
 
 class GeneralSettings:
     def __init__(self):
-        self.page = AppContext.get_page()
+        self.page = PageState.get_page()
         self.unit_system = {
             "Imperial": {"Distance": "Yards", "Speed": "mph"},
             "Metric": {"Distance": "Meters", "Speed": "km/h"},

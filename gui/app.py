@@ -2,14 +2,14 @@ import asyncio
 
 import flet as ft
 
-from gui.app_context import AppContext
+from states.app_page_state import PageState
 from gui.tab_home import HomeView
 from gui.tab_settings import SettingsView
 from utils import load_settings
 
 
 async def app(page: ft.Page) -> None:
-    AppContext.set_page(page)
+    PageState.set_page(page)
     page.title = "GolfSim"
     page.window.maximized = True
     page.window.min_width = 680

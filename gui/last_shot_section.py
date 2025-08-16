@@ -3,8 +3,8 @@ import json
 
 import flet as ft
 
+from states.app_page_state import PageState
 from data_base.schemas import LastGolfShotSchema
-from gui.app_context import AppContext
 from gui.drive_range_dashboard import DriveRangeDashboard
 from logging_config import logger
 from utils import SelectClub
@@ -12,7 +12,7 @@ from utils import SelectClub
 
 class LastShotSection:
     def __init__(self, last_shot: dict):
-        self.page = AppContext.get_page()
+        self.page = PageState.get_page()
         self.last_shot = last_shot
         self.active_club = {"name": "", "image": ""}
         self.golf_clubs = {}
