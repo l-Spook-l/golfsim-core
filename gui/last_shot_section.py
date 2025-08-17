@@ -3,11 +3,11 @@ import json
 
 import flet as ft
 
+from states.shot_state import ShotState
 from states.app_page_state import PageState
 from data_base.schemas import LastGolfShotSchema
 from gui.drive_range_dashboard import DriveRangeDashboard
 from logging_config import logger
-from utils import SelectClub
 
 
 class LastShotSection:
@@ -18,7 +18,7 @@ class LastShotSection:
         self.golf_clubs = {}
         self.dlg_modal = ft.AlertDialog()
         self.button_select_club = None
-        self.shot_selected_club = SelectClub()
+        self.shot_selected_club = ShotState()
         self.drive_range_dashboard = DriveRangeDashboard()
 
     async def load_clubs_info(self):
@@ -42,7 +42,7 @@ class LastShotSection:
             ft.Image(src=club_image_src, width=80, height=80),
         ])
         self.shot_selected_club.club = club_name
-        self.shot_selected_club.save_data()
+        self.shot_selected_club.save()
         self.page.close(self.dlg_modal)
         self.page.update()
 

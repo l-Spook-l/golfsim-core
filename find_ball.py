@@ -1,18 +1,19 @@
 import asyncio
+import datetime
 import json
+
 import cv2
 import cvzone
 import aiofiles
-import datetime
 
+from states.shot_state import ShotState
 from data_base.schemas import HSVSettingSchema
 from data_base.config_db import async_session_maker
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.repositories.hsv_setting import HSVSettingRepository
-from find_angle import AngleCalculator
+from gui.find_angle import AngleCalculator
 from shot_analysis.parser import get_shot_result
 from config import myColorFinder, FRAMES_IN_SECOND, MIN_AREA
-from utils import ShotResult, SelectClub
 
 
 class HSVSettingsManager:
@@ -55,8 +56,8 @@ class GolfBallTracker:
         self.hsv_vals = hsv_vals
         self.frame_time = frame_time
         self.angle_calculator = AngleCalculator()
-        self.shot_selected_club = SelectClub()
-        self.set_shot_result = ShotResult()
+        self.shot_selected_club = ShotState()
+        self.set_shot_result = ShotState()
         self.reset()
 
     def reset(self):  # мб поменять название
@@ -146,7 +147,7 @@ class ShotAnalyzer:
         await self.data_manager.save_shot(result)
         self.tracker.set_shot_result.speed = shot_data["max_speed"]
         self.tracker.set_shot_result.vertical_angle = shot_data["angle"]
-        self.tracker.set_shot_result.save_data()
+        self.tracker.set_shot_result.save()
         self.tracker.reset()
 
 
