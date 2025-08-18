@@ -13,11 +13,11 @@ class GolfShot(Base):
     club: Mapped[str] = mapped_column(String(length=25), nullable=True)
     ball_speed: Mapped[float] = mapped_column(nullable=False, default=0.0)
     angle_v: Mapped[float] = mapped_column(nullable=False, default=0.0)
-    angle_h: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    angle_h: Mapped[str] = mapped_column(String(length=8), nullable=False, default="0.0")
     carry: Mapped[float] = mapped_column(nullable=False, default=0.0)
     roll: Mapped[float] = mapped_column(nullable=False, default=0.0)
     total: Mapped[float] = mapped_column(nullable=False, default=0.0)
-    lateral: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    lateral: Mapped[str] = mapped_column(String(length=8), nullable=False, default="0.0")
     spin: Mapped[int] = mapped_column(nullable=False, default=0)
     date: Mapped[datetime] = mapped_column(default=datetime.now)
 
