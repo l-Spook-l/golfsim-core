@@ -19,13 +19,8 @@ class LastShotSection:
         self.drive_range_dashboard = DriveRangeDashboard()
 
     async def load_clubs_info(self):
-        if os.path.exists("data/clubs.json"):
-            with open("data/clubs.json", "r", encoding="utf-8") as file:
-                try:
-                    self.golf_clubs = json.load(file)
-                except json.JSONDecodeError:
-                    logger.info("File is corrupted. Creating it again.")
-        name_active_club = self.shot_selected_club.club
+        self.golf_clubs = self.shot_state.golf_clubs
+        name_active_club = self.shot_state.club
         self.active_club = {
             "name": name_active_club,
             "image": self.golf_clubs.get(name_active_club).get("image")
