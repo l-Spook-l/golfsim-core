@@ -101,19 +101,19 @@ class ShotState:
         self.shot_data["carry"] = value
 
     @property
-    def vertical_angle(self) -> int:
+    def vertical_angle(self) -> float:
         return self.shot_data["angle_v"]
 
     @vertical_angle.setter
-    def vertical_angle(self, angle: int):
+    def vertical_angle(self, angle: float):
         self.shot_data["angle_v"] = angle
 
     @property
-    def horizontal_angle(self) -> int:
+    def horizontal_angle(self) -> str:
         return self.shot_data["angle_h"]
 
     @horizontal_angle.setter
-    def horizontal_angle(self, angle: int):
+    def horizontal_angle(self, angle: str):
         self.shot_data["angle_h"] = angle
 
     @property

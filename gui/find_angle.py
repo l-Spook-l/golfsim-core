@@ -18,7 +18,7 @@ class AngleCalculator:
             return math.inf  # Vertical line, slope is infinite
         return (pt2[1] - pt1[1]) / (pt2[0] - pt1[0])
 
-    def get_angle(self, points_list: list) -> int:
+    def get_angle(self, points_list: list) -> float:
         """
         Calculates the angle between two lines originating from the first point in the list.
         The first line is defined by pt1 and pt2, and the second line is defined by pt1 and pt3.
@@ -47,6 +47,6 @@ class AngleCalculator:
             ang_r = math.atan((m2 - m1) / (1 + (m2 * m1)))
 
         # Convert the angle from radians to degrees and round to the nearest integer
-        ang_d = round(math.degrees(ang_r))
+        ang_d = round(math.degrees(ang_r), 1)
 
         return ang_d
