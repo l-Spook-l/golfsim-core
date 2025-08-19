@@ -1,7 +1,7 @@
 {
     "club": "Driver",
-    "speed": 2.31,
+    "speed": 1.03,
     "carry": 0.0,
-    "angle_v": 18,
-    "angle_h": 0
+    "angle_v": 12.5,
+    "angle_h": -15.6
 }
