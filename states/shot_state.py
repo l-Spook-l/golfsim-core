@@ -16,8 +16,10 @@ class ShotState:
 
         self.file_last_shot = Path(data_dir) / "last_shot_result.json"
         self.file_selected_club = Path(data_dir) / "selected_club.json"
+        self.file_clubs_info = Path(data_dir) / "clubs_info.json"
 
         # состояние в памяти
+        self.golf_clubs = {}
         self.selected_club = "Driver"
         self.shot_data = {
             "club": self.selected_club,
@@ -27,19 +29,33 @@ class ShotState:
             "angle_h": 0
         }
 
-        self._load()
+        self._load_last_shot()
+        self._load_clubs_info()
         self._initialized = True
 
-    def _load(self):
+    def _load_last_shot(self):
         if self.file_last_shot.exists():
             try:
                 with open(self.file_last_shot, "r", encoding="utf-8") as f:
                     self.shot_data.update(json.load(f))
-            except Exception:
-                pass
+            except json.JSONDecodeError:
+                logger.error("last_shot_result.json is corrupted! Using default data.")
+            except OSError as e:
+                logger.error(f"Failed to read last_shot_result.json: {e}")
+        else:
+            logger.warning("last_shot_result.json is missing. Using default values.")
 
-        # синхронизация
-        self.shot_data["club"] = self.selected_club
+    def _load_clubs_info(self):
+        if self.file_clubs_info.exists():
+            try:
+                with open(self.file_clubs_info, "r", encoding="utf-8") as file:
+                    self.golf_clubs = json.load(file)
+            except json.JSONDecodeError:
+                logger.error("clubs_info.json is corrupted! Club data not loaded.")
+            except OSError as e:
+                logger.error(f"Failed to read clubs_info.json: {e}")
+        else:
+            logger.error("clubs_info.json is missing! Clubs not loaded.")
 
     def save(self):
         # сохраняем выбранный клуб
