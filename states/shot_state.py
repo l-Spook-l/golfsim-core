@@ -1,5 +1,13 @@
 import json
+from enum import Enum
 from pathlib import Path
+
+from logging_config import logger
+
+
+class AngleType(Enum):
+    HORIZONTAL = "horizontal"
+    VERTICAL = "vertical"
 
 
 class ShotState:
@@ -21,12 +29,13 @@ class ShotState:
         # состояние в памяти
         self.golf_clubs = {}
         self.selected_club = "Driver"
+        self.selected_angle_type = AngleType.VERTICAL
         self.shot_data = {
             "club": self.selected_club,
             "speed": 0.0,
             "carry": 0.0,
-            "angle_v": 0,
-            "angle_h": 0
+            "angle_v": 0.0,
+            "angle_h": "0.0",
         }
 
         self._load_last_shot()
@@ -66,6 +75,14 @@ class ShotState:
         self.shot_data["club"] = self.selected_club
         with open(self.file_last_shot, "w", encoding="utf-8") as f:
             json.dump(self.shot_data, f, indent=4)
+
+    @property
+    def angle_type(self):
+        return self.selected_angle_type
+
+    @angle_type.setter
+    def angle_type(self, angle_type):
+        self.selected_angle_type = angle_type
 
     @property
     def speed(self) -> float:

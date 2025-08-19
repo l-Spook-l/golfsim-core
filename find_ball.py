@@ -6,7 +6,7 @@ import cv2
 import cvzone
 import aiofiles
 
-from states.shot_state import ShotState
+from states.shot_state import ShotState, AngleType
 from data_base.schemas import HSVSettingSchema
 from data_base.config_db import async_session_maker
 from data_base.repositories.golf_shot import GolfShotRepository
@@ -56,8 +56,7 @@ class GolfBallTracker:
         self.hsv_vals = hsv_vals
         self.frame_time = frame_time
         self.angle_calculator = AngleCalculator()
-        self.shot_selected_club = ShotState()
-        self.set_shot_result = ShotState()
+        self.shot_state = ShotState()
         self.reset()
 
     def reset(self):  # мб поменять название
@@ -119,10 +118,12 @@ class GolfBallTracker:
     def _finalize_shot(self):
         self.coordinates_angle = [self.pos_list[7], self.pos_list[-1], [self.pos_list[-1][0], self.pos_list[7][1]]]
         angle = self.angle_calculator.get_angle(self.coordinates_angle)
-        club = self.shot_selected_club.club
+        club = self.shot_state.club
         return {
             "max_speed": self.max_speed,
-            "angle": angle,
+            "angle_v": angle if self.shot_state.angle_type == AngleType.VERTICAL
+            else self.shot_state.golf_clubs.get(self.shot_state.club).get("launch_angle_average"),
+            "angle_h": angle if self.shot_state.angle_type == AngleType.HORIZONTAL else 0,
             "club": club
         }
 
@@ -134,20 +135,27 @@ class ShotAnalyzer:
 
     async def analyze_and_save(self, shot_data):
         spin = await self.data_manager.get_spin_for_club(shot_data["club"])
-        if (shot_data["max_speed"] * 2.237 >= 45) and (5 <= shot_data["angle"] <= 45):
-            result = await get_shot_result(shot_data["max_speed"] * 2.237, shot_data["angle"], spin)
+        if (shot_data["max_speed"] * 2.237 >= 45) and (5 <= shot_data["angle_v"] <= 45) and shot_data["angle_h"] <= 45:
+            result = await get_shot_result(
+                shot_data["max_speed"] * 2.237,
+                shot_data["angle_v"],
+                shot_data["angle_h"],
+                spin
+            )
         else:
             result = {
                 "ball_speed": shot_data["max_speed"],
-                "angle_v": shot_data["angle"],
+                "angle_v": shot_data["angle_v"],
+                "angle_h": shot_data["angle_h"],
                 "spin": spin
             }
         result["club"] = shot_data["club"]
 
         await self.data_manager.save_shot(result)
-        self.tracker.set_shot_result.speed = shot_data["max_speed"]
-        self.tracker.set_shot_result.vertical_angle = shot_data["angle"]
-        self.tracker.set_shot_result.save()
+        self.tracker.shot_state.speed = shot_data["max_speed"]
+        self.tracker.shot_state.vertical_angle = shot_data["angle_v"]
+        self.tracker.shot_state.horizontal_angle = shot_data["angle_h"]
+        self.tracker.shot_state.save()
         self.tracker.reset()
 
 

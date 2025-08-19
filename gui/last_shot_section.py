@@ -1,13 +1,9 @@
-import os
-import json
-
 import flet as ft
 
-from states.shot_state import ShotState
+from states.shot_state import ShotState, AngleType
 from states.app_page_state import PageState
 from data_base.schemas import LastGolfShotSchema
 from gui.drive_range_dashboard import DriveRangeDashboard
-from logging_config import logger
 
 
 class LastShotSection:
@@ -15,10 +11,11 @@ class LastShotSection:
         self.page = PageState.get_page()
         self.last_shot = last_shot
         self.active_club = {"name": "", "image": ""}
+        self.angle_mode = None
         self.golf_clubs = {}
         self.dlg_modal = ft.AlertDialog()
         self.button_select_club = None
-        self.shot_selected_club = ShotState()
+        self.shot_state = ShotState()
         self.drive_range_dashboard = DriveRangeDashboard()
 
     async def load_clubs_info(self):
@@ -41,8 +38,8 @@ class LastShotSection:
             ft.Text(club_name, size=20),
             ft.Image(src=club_image_src, width=80, height=80),
         ])
-        self.shot_selected_club.club = club_name
-        self.shot_selected_club.save()
+        self.shot_state.club = club_name
+        self.shot_state.save()
         self.page.close(self.dlg_modal)
         self.page.update()
 
@@ -70,8 +67,44 @@ class LastShotSection:
                 height=400,
             ),
             bgcolor="#E4E7EB",
-            # adaptive=True,  # Сделать диалог адаптивным в зависимости от платформы
             on_dismiss=lambda e: print("Диалог закрыт")
+        )
+
+    def set_angle_mode(self):
+        mode_txt = ft.Text("Angle mode", size=24)
+
+        def set_mode(val: str):
+            match val:
+                case "vertical":
+                    self.shot_state.angle_type = AngleType.VERTICAL
+                    pass
+                case "horizontal":
+                    self.shot_state.angle_type = AngleType.HORIZONTAL
+                    pass
+                # TODO реализация одновременного анализа двух углов
+                # case "both":
+                #     pass
+            self.page.update()
+
+        rg = ft.RadioGroup(
+            value="vertical",
+            on_change=lambda e: set_mode(e.control.value),
+            content=ft.Column([
+                ft.Radio(value="vertical", label="Vertical", label_style=ft.TextStyle(size=18)),
+                ft.Radio(value="horizontal", label="Horizontal", label_style=ft.TextStyle(size=18)),
+            ])
+        )
+        return ft.Container(
+            content=ft.Column([
+                mode_txt,
+                rg
+            ]),
+            bgcolor="#E8F5E9",
+            border=ft.border.all(1, "black"),
+            border_radius=10,
+            alignment=ft.alignment.center,
+            width=180,
+            padding=10
         )
 
     def build_last_shot_table(self) -> ft.Container:
@@ -103,6 +136,7 @@ class LastShotSection:
         )
 
         last_shot_data.append(self.button_select_club)
+        last_shot_data.append(self.set_angle_mode())
 
         return ft.Container(
             content=ft.Row(
