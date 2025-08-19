@@ -45,7 +45,7 @@ class ShotDataManager:
 
     @staticmethod
     async def get_spin_for_club(club: str) -> int:
-        async with aiofiles.open("data/clubs.json", "r", encoding='utf-8') as file:
+        async with aiofiles.open("data/clubs_info.json", "r", encoding='utf-8') as file:
             clubs = await file.read()
             clubs_data = json.loads(clubs)
             return clubs_data.get(club).get("spin_rate_average")
