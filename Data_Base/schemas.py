@@ -6,7 +6,7 @@ class LastGolfShotSchema(BaseModel):
     carry: float = Field(..., title="Carry (yd)")
     ball_speed: float = Field(..., title="Ball (mph)")
     angle_v: float = Field(..., title="Launch V")
-    angle_h: float = Field(..., title="Launch H")
+    angle_h: str = Field(..., title="Launch H")
 
     model_config = {
         "from_attributes": True
@@ -18,11 +18,11 @@ class GolfShotsSchema(BaseModel):
     club: str
     ball_speed: float
     angle_v: float
-    angle_h: float
+    angle_h: str
     carry: float
     roll: float
     total: float
-    lateral: float
+    lateral: str
     spin: int
     date: datetime
 
@@ -32,11 +32,11 @@ class GolfShotsSchema(BaseModel):
             self.club,
             str(self.ball_speed),
             str(self.angle_v),
-            str(self.angle_h),
+            self.angle_h,
             str(self.carry),
             str(self.roll),
             str(self.total),
-            str(self.lateral),
+            self.lateral,
             str(self.spin),
             self.date.strftime("%Y-%m-%d %H:%M:%S"),
         ]
@@ -52,5 +52,5 @@ class HSVSettingSchema(BaseModel):
     value_max: int
 
     model_config = {
-        "from_attributes": True  # Это замена orm_mode Для работы с SQLAlchemy
+        "from_attributes": True
     }
