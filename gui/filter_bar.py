@@ -23,7 +23,7 @@ class FilterBar:
         self.limit_records = 10
         self.golf_list_clubs = (
             "All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
-            "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
+            "9-Iron", "PW", "GW", "SW", "LW", "Putter")
 
     @staticmethod
     async def fetch_first_shot_date() -> datetime:
