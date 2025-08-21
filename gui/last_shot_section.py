@@ -29,10 +29,12 @@ class LastShotSection:
     def update_selected_club(self, club_name: str, club_image_src: str):
         self.active_club["name"] = club_name
         self.active_club["image"] = club_image_src
+
         self.button_select_club.content = ft.Column([
-            ft.Text(club_name, size=20),
-            ft.Image(src=club_image_src, width=80, height=80),
-        ])
+            ft.Text(club_name, size=32, text_align=ft.TextAlign.CENTER),
+            ft.Image(src=club_image_src, width=110, height=100),
+        ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+
         self.shot_state.club = club_name
         self.shot_state.save()
         self.page.close(self.dlg_modal)
@@ -44,25 +46,34 @@ class LastShotSection:
             content=ft.Container(
                 content=ft.Column([
                     ft.Row([
-                        ft.ElevatedButton(
-                            width=150,
-                            height=120,
-                            content=ft.Column([
-                                ft.Text(f"{club[0]}", size=18),
-                                ft.Image(src=club[1].get("image"), width=75, height=75),
-                            ], spacing=5),
-                            on_click=lambda e, club_name=club[0],
-                                            club_image_src=club[1].get("image"): self.update_selected_club(
-                                club_name, club_image_src)
+                        ft.Container(
+                            width=160,
+                            height=130,
+                            bgcolor="#FFFFFF",
+                            border=ft.border.all(1, "#CCCCCC"),
+                            border_radius=20,
+                            padding=10,
+                            margin=5,
+                            alignment=ft.alignment.center,
+                            content=ft.Column(
+                                [
+                                    ft.Text(f"{club[0]}", size=18),
+                                    ft.Image(src=club[1].get("image"), width=75, height=75, fit=ft.ImageFit.CONTAIN),
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            ),
+                            ink=True,
+                            on_click=lambda e, club_name=club[0], club_image_src=club[1].get("image"):
+                            self.update_selected_club(club_name, club_image_src)
                         )
                         for club in list(self.golf_clubs.items())[i:i + 4]
                     ])
                     for i in range(0, len(self.golf_clubs), 4)
-                ]),
+                ], spacing=10),
                 height=400,
             ),
             bgcolor="#E4E7EB",
-            on_dismiss=lambda e: print("Диалог закрыт")
         )
 
     def set_angle_mode(self):
@@ -120,13 +131,20 @@ class LastShotSection:
             )
             last_shot_data.append(row)
 
-        self.button_select_club = ft.ElevatedButton(
-            width=200,
-            content=ft.Column([
-                ft.Text(self.active_club.get("name"), size=20, text_align=ft.TextAlign.CENTER),
-                ft.Image(src=self.active_club.get("image"), width=80, height=80),
-            ], spacing=10),
+        self.button_select_club = ft.Container(
+            width=180,
             bgcolor="#E8F5E9",
+            border=ft.border.all(1, "black"),
+            border_radius=10,
+            alignment=ft.alignment.center,
+            content=ft.Column([
+                ft.Text(self.active_club.get("name"), size=32, text_align=ft.TextAlign.CENTER),
+                ft.Image(src=self.active_club.get("image"), width=110, height=110),
+            ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            ink=True,
             on_click=lambda e: self.page.open(self.dlg_modal)
         )
 
@@ -141,7 +159,7 @@ class LastShotSection:
             bgcolor="#C8E6C9",
             padding=10,
             border_radius=15,
-            height=200
+            height=180
         )
 
     async def build_section(self) -> ft.Container:
