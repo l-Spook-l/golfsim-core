@@ -12,7 +12,8 @@ from data_base.config_db import async_session_maker
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.repositories.hsv_setting import HSVSettingRepository
 from gui.find_angle import AngleCalculator
-from shot_analysis.parser import get_shot_result
+from shot_analysis.parser import ParserFlightscope
+from logging_config import logger
 from config import myColorFinder, FRAMES_IN_SECOND, MIN_AREA
 
 
@@ -87,7 +88,7 @@ class GolfBallTracker:
         if contours:
             self._update_positions(contours[0]['center'])
         else:
-            if len(self.pos_list) > 10:
+            if len(self.pos_list) > 100:
                 return self._finalize_shot()
 
         return None
@@ -119,11 +120,13 @@ class GolfBallTracker:
         self.coordinates_angle = [self.pos_list[7], self.pos_list[-1], [self.pos_list[-1][0], self.pos_list[7][1]]]
         angle = self.angle_calculator.get_angle(self.coordinates_angle)
         club = self.shot_state.club
+        if self.shot_state.angle_type == AngleType.HORIZONTAL and angle != 0:
+            angle = f"{angle} L" if angle > 0 else f"{abs(angle)} R"
         return {
             "max_speed": self.max_speed,
             "angle_v": angle if self.shot_state.angle_type == AngleType.VERTICAL
             else self.shot_state.golf_clubs.get(self.shot_state.club).get("launch_angle_average"),
-            "angle_h": angle if self.shot_state.angle_type == AngleType.HORIZONTAL else 0,
+            "angle_h": angle if self.shot_state.angle_type == AngleType.HORIZONTAL else 0.0,
             "club": club
         }
 
@@ -135,8 +138,8 @@ class ShotAnalyzer:
 
     async def analyze_and_save(self, shot_data):
         spin = await self.data_manager.get_spin_for_club(shot_data["club"])
-        if (shot_data["max_speed"] * 2.237 >= 45) and (5 <= shot_data["angle_v"] <= 45) and shot_data["angle_h"] <= 45:
-            result = await get_shot_result(
+        if (shot_data["max_speed"] * 2.237 >= 45) and (5 <= shot_data["angle_v"] <= 45) and shot_data["angle_h"] <= 45:  # !!!!!!угол то строка!!
+            result = await ParserFlightscope.get_shot_result(
                 shot_data["max_speed"] * 2.237,
                 shot_data["angle_v"],
                 shot_data["angle_h"],
