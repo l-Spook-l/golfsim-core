@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from data_base.repositories.base import BaseRepository
 from data_base.models import GolfShot
-from logging_config import logger
+from core.logging_config import logger
 
 
 class GolfShotRepository(BaseRepository):

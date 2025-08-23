@@ -11,10 +11,10 @@ from data_base.schemas import HSVSettingSchema
 from data_base.config_db import async_session_maker
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.repositories.hsv_setting import HSVSettingRepository
-from gui.find_angle import AngleCalculator
+from core.find_angle import AngleCalculator
 from shot_analysis.parser import ParserFlightscope
-from logging_config import logger
-from config import myColorFinder, FRAMES_IN_SECOND, MIN_AREA
+# from logging_config import logger
+from core.config import myColorFinder, FRAMES_IN_SECOND, MIN_AREA
 
 
 class HSVSettingsManager:

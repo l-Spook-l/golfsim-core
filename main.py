@@ -1,9 +1,9 @@
 import asyncio
 
-from gui.app import start_flet
+from ui.app import start_flet
 from web_server.server import APIServer
-from check_folder import FolderWatcher
-from logging_config import logger
+from core.check_folder import FolderWatcher
+from core.logging_config import logger
 
 
 async def main():

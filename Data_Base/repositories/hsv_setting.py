@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from data_base.repositories.base import BaseRepository
 from data_base.models import HSVSetting
-from logging_config import logger
-from exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
+from core.logging_config import logger
+from core.exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
 
 
 class HSVSettingRepository(BaseRepository):

@@ -2,7 +2,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 
-DATABASE_URL = "sqlite+aiosqlite:///example.db"
+DATABASE_URL = "sqlite+aiosqlite:///database.db"
 
 
 class Base(DeclarativeBase):

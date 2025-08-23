@@ -3,8 +3,8 @@ from datetime import datetime
 import flet as ft
 
 from states.app_page_state import PageState
-from gui.filter_bar import FilterBar
-from gui.tab_stat_table import GolfShotTable
+from ui.components.filter_bar import FilterBar
+from ui.components.tab_stat_table import GolfShotTable
 
 
 class DriveRangeDashboard:

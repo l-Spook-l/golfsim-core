@@ -11,8 +11,8 @@ from cvzone.ColorModule import ColorFinder
 from states.app_page_state import PageState
 from data_base.config_db import async_session_maker
 from data_base.repositories.hsv_setting import HSVSettingRepository
-from exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
-from logging_config import logger
+from core.exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedError
+from core.logging_config import logger
 
 
 class FindBallByColor:

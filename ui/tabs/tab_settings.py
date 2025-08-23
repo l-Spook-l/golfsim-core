@@ -1,8 +1,8 @@
 import flet as ft
 
-from gui.find_color import FindBallByColor
-from gui.find_point import PixelDistanceCalibrator
-from gui.general_settings import GeneralSettings
+from ui.components.find_color import FindBallByColor
+from ui.components.find_point import PixelDistanceCalibrator
+from ui.components.general_settings import GeneralSettings
 
 
 class SettingsView:

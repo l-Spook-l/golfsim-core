@@ -1,8 +1,8 @@
 import flet as ft
 
 from data_base.config_db import async_session_maker
-from data_base.db import DataBase
-from general_settings import unit_system
+# from data_base.db import DataBase
+# from ui.components.general_settings import unit_system
 
 # golf_list_clubs = ("All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
 #                    "9-Iron", "Pitching Wedge", "Gap Wedge", "Sand wedge", "Lob wedge", "Putter")
@@ -18,8 +18,6 @@ async def load_data() -> list:
 
 async def load_stat_graph(page: ft.Page = None):
     data = await load_data()
-
-    # print('qweeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee data tab', data)
 
     data_1 = [
         ft.LineChartData(

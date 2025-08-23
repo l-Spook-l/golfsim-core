@@ -2,7 +2,7 @@ import os
 import json
 
 import aiofiles
-from logging_config import logger
+from core.logging_config import logger
 
 
 async def load_settings() -> dict:

@@ -1,20 +1,18 @@
 import logging
 
 logger = logging.getLogger("app")
-# Устанавливаем уровень логирования
-logger.setLevel(logging.DEBUG)  # Если стоит .setLevel(logging.WARNING), то INFO и DEBUG не будут отображаться.
+# Set the logging level
+logger.setLevel(logging.DEBUG)  # If .setLevel(logging.WARNING) is set, INFO and DEBUG will not be displayed.
 
-# Формат сообщений
+# Message format
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-# Вывод в консоль
+# Output to console
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
-# Вывод в файл (если нужно)
+# Output to file (if needed)
 file_handler = logging.FileHandler("app.log")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
-
-

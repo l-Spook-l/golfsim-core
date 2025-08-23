@@ -3,7 +3,7 @@ import flet.canvas as cv
 
 from data_base.config_db import async_session_maker
 from data_base.repositories.pixel_distance import PixelDistanceSettingRepository
-from logging_config import logger
+from core.logging_config import logger
 
 
 class PixelDistanceCalibrator:

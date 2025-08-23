@@ -3,9 +3,9 @@ import asyncio
 import flet as ft
 
 from states.shot_state import ShotState
-from gui.last_shot_section import LastShotSection
-from gui.drive_range_dashboard import DriveRangeDashboard
-from logging_config import logger
+from ui.components.last_shot_section import LastShotSection
+from ui.components.drive_range_dashboard import DriveRangeDashboard
+from core.logging_config import logger
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.config_db import async_session_maker
 

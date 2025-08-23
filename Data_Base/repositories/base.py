@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete
 
 from data_base.config_db import Base
-from logging_config import logger
+from core.logging_config import logger
 
 
 class BaseRepository:

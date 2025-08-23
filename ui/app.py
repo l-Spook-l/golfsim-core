@@ -3,9 +3,9 @@ import asyncio
 import flet as ft
 
 from states.app_page_state import PageState
-from gui.tab_home import HomeView
-from gui.tab_settings import SettingsView
-from utils import load_settings
+from ui.tabs.tab_home import HomeView
+from ui.tabs.tab_settings import SettingsView
+from core.utils import load_settings
 
 
 async def app(page: ft.Page) -> None:

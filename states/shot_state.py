@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from pathlib import Path
 
-from logging_config import logger
+from core.logging_config import logger
 
 
 class AngleType(Enum):

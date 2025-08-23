@@ -11,7 +11,7 @@ from web_server.find_local_ip import get_local_ip as local_ip
 from data_base.config_db import async_session_maker
 from data_base.repositories.hsv_setting import HSVSettingRepository
 from data_base.schemas import HSVSettingSchema
-from logging_config import logger
+from core.logging_config import logger
 
 
 class APIServer:

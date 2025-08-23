@@ -1,9 +1,8 @@
 import os
 import asyncio
 
-# from find_ball import find_golf_ball
-from find_ball import VideoProcessor
-from logging_config import logger
+from core.find_ball import VideoProcessor
+from core.logging_config import logger
 
 
 class FolderWatcher:

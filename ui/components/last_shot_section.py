@@ -3,7 +3,7 @@ import flet as ft
 from states.shot_state import ShotState, AngleType
 from states.app_page_state import PageState
 from data_base.schemas import LastGolfShotSchema
-from gui.drive_range_dashboard import DriveRangeDashboard
+from ui.components.drive_range_dashboard import DriveRangeDashboard
 
 
 class LastShotSection:
