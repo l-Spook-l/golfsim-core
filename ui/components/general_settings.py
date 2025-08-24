@@ -1,3 +1,4 @@
+import os
 import json
 
 import flet as ft
@@ -76,8 +77,8 @@ class GeneralSettings:
                                         ft.IconButton(
                                             icon=ft.Icons.DELETE_FOREVER_OUTLINED,
                                             icon_color="red",
-                                            on_click=lambda e, hsv_id=hsv_data.id: self.page.run_task(
-                                                self.delete_hsv_set, hsv_id)
+                                            on_click=lambda e, hsv_id=hsv_data.id, photo_name=hsv_data.photo:
+                                            self.page.run_task(self.delete_hsv_set, hsv_id, photo_name)
                                         ),
                                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                                 ),
@@ -115,10 +116,12 @@ class GeneralSettings:
             await repo.set_active_hsv_set(hsv_id)
         await self.refresh_after_hsv_change()
 
-    async def delete_hsv_set(self, hsv_id: int):
+    async def delete_hsv_set(self, hsv_id: int, photo_name: str):
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
             await repo.delete_by_id(HSVSetting, hsv_id)
+        if os.path.exists(photo_name):
+            os.remove(photo_name)
         await self.refresh_after_hsv_change()
 
     async def refresh_after_hsv_change(self):
