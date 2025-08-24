@@ -2,6 +2,7 @@ import asyncio
 
 from ui.app import start_flet
 from web_server.server import APIServer
+from data_base.config_db import run_migrations, DB_FILE
 from core.check_folder import FolderWatcher
 from core.logging_config import logger
 
@@ -50,6 +51,8 @@ async def main():
 
 if __name__ == "__main__":
     try:
+        if not DB_FILE.exists():
+            run_migrations()
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Application stopped by user")
