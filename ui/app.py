@@ -47,14 +47,6 @@ async def app(page: ft.Page) -> None:
         if e.data == "close":
             page.window.destroy()
 
-    # TODO: Add a button to exit and close the application
-    # exit_button = ft.IconButton(
-    #     icon=ft.Icons.EXIT_TO_APP,
-    #     on_click=lambda e: page.window.close(),
-    #     icon_size=35,
-    #     tooltip="Закрыть приложение",
-    # )
-
     page.window.on_event = handle_window_event
     page.add(tabs)
 
