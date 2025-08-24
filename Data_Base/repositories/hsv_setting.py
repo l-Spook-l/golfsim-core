@@ -1,3 +1,7 @@
+import os
+
+import aiofiles
+import aiohttp
 from sqlalchemy import insert, select, update, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +15,32 @@ from core.exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedEr
 class HSVSettingRepository(BaseRepository):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
+
+    async def create_default_hsv(self):
+        url = "https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg"
+        new_folder = "mobile_uploads/images/profile_images/"
+        local_path = os.path.join(new_folder, "default.jpg")
+
+        async with aiohttp.ClientSession() as client:
+            async with client.get(url) as resp:
+                if resp.status == 200:
+                    async with aiofiles.open(local_path, mode='wb') as f:
+                        await f.write(await resp.read())
+
+        default_hsv_data = HSVSetting(
+            profile_name="default",
+            hue_min=0,
+            hue_max=180,
+            saturation_min=0,
+            saturation_max=255,
+            value_min=0,
+            value_max=255,
+            is_active=True,
+            photo=f"{new_folder}default.png",
+        )
+        self.session.add(default_hsv_data)
+        await self.session.commit()
+        return default_hsv_data
 
     async def add_new_hsv_set(self, data: dict):
         try:

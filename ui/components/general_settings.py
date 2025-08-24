@@ -133,7 +133,8 @@ class GeneralSettings:
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
             data = await repo.get_active_hsv_set()
-            logger.info(f"Data active_hsv - {data.id}")
+            if not data:
+                data = await repo.create_default_hsv()
 
         info_section = ft.Column(
             [
