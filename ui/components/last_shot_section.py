@@ -90,10 +90,9 @@ class LastShotSection:
                 # TODO реализация одновременного анализа двух углов
                 # case "both":
                 #     pass
-            self.page.update()
 
         rg = ft.RadioGroup(
-            value="vertical",
+            value=self.shot_state.angle_type.value,
             on_change=lambda e: set_mode(e.control.value),
             content=ft.Column([
                 ft.Radio(value="vertical", label="Vertical", label_style=ft.TextStyle(size=18)),

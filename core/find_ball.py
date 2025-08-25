@@ -192,3 +192,4 @@ class VideoProcessor:
 
 if __name__ == "__main__":
     asyncio.run(VideoProcessor("example.mp4").run())
+    # asyncio.run(VideoProcessor("media_files_for_tests/videos/240FPS_fly_50cm.mp4").run())
