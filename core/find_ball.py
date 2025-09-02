@@ -12,8 +12,8 @@ from data_base.config_db import async_session_maker
 from data_base.repositories.golf_shot import GolfShotRepository
 from data_base.repositories.hsv_setting import HSVSettingRepository
 from core.find_angle import AngleCalculator
-from shot_analysis.parser import ParserFlightscope
-# from logging_config import logger
+from shot_analysis.parser_flightscope import ParserFlightscope
+from core.logging_config import logger
 from core.config import myColorFinder, FRAMES_IN_SECOND, MIN_AREA
 
 
@@ -187,9 +187,8 @@ class VideoProcessor:
                     await analyzer.analyze_and_save(shot_data)
         finally:
             cap.release()
-            print(f'time {datetime.datetime.now() - now}')
+            logger.info(f'time {datetime.datetime.now() - now}')
 
 
 if __name__ == "__main__":
     asyncio.run(VideoProcessor("example.mp4").run())
-    # asyncio.run(VideoProcessor("media_files_for_tests/videos/240FPS_fly_50cm.mp4").run())

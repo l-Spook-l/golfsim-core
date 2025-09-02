@@ -17,6 +17,8 @@ data/unity_course_data
 app.log
 ui/app.log
 web_server/app.log
+shot_analysis/parser_flightscope_real.py
 plan.txt
 mobile_uploads/golf_shots/*
 mobile_uploads/images/*
+database.db
