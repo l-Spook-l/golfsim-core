@@ -7,16 +7,41 @@ from core.logging_config import logger
 
 
 class PixelDistanceCalibrator:
+    """
+    Class for calibrating distance in pixels on an image.
+
+    Main functionality:
+    - Tracking clicks on the image and selecting two points
+    - Calculating the pixel distance between the two points
+    - Saving the calculated value as a "pixels per centimeter" coefficient
+    - Displaying the selected coordinates and calculated value on the Flet interface
+
+    Attributes:
+        image_path (str): Path to the image used for calibration
+        shapes (list): List of shapes (points) on the Canvas
+        distance_px_value (int): Number of pixels per 1 cm
+        coordinates_text (ft.Text): UI element displaying the current click coordinates
+        distance_cm_text (ft.Text): UI element displaying the calculated distance
+        canvas (cv.Canvas): Canvas for drawing points
+        tab_content (ft.Row): Tab container with the calibration interface
+    """
+
     def __init__(self):
         self.image_path = "media_files_for_tests/video_dnerp/ball 240 2024-07-27 141246.png"
-        self.shapes = []
-        self.distance_px_value = 0
+        self.shapes: list = []
+        self.distance_px_value: int = 0
         self.coordinates_text = ft.Text("Coordinates: (0, 0)")
         self.distance_cm_text = ft.Text("1 cm = 0 px")
         self.canvas = cv.Canvas(expand=True)
         self.tab_content = ft.Row()
 
     async def add_hsv_value(self, e):
+        """
+        Saves the calculated pixels-per-centimeter value to the database.
+
+        Args:
+            e: Flet event (not used directly).
+        """
         if self.distance_px_value > 0:
             async with async_session_maker() as session:
                 repo = PixelDistanceSettingRepository(session)
@@ -29,6 +54,15 @@ class PixelDistanceCalibrator:
             logger.info("Try again, please")
 
     def on_click(self, e):
+        """
+        Handles a click on the image:
+        - Adds a point to the list.
+        - Clears old points if there are more than two.
+        - Calculates the pixel distance and updates the UI when two points are selected.
+
+        Args:
+            e (ft.TapEvent): click event with coordinates.
+        """
         x, y = int(e.local_x), int(e.local_y)
 
         if len(self.shapes) >= 2:
@@ -45,7 +79,17 @@ class PixelDistanceCalibrator:
             self.distance_cm_text.value = f"1 cm = {self.distance_px_value} px"
         self.tab_content.update()
 
-    def build_section(self):
+    def build_section(self) -> ft.Row:
+        """
+        Creates the calibration tab interface:
+        - Image with GestureDetector for clicks.
+        - Canvas for drawing points.
+        - Text fields showing coordinates and the calculated value.
+        - Button to save the value.
+
+        Returns:
+            ft.Row: container with the UI content.
+        """
         image = ft.Image(src=self.image_path)
         stack = ft.Stack([image, self.canvas])
         gd = ft.GestureDetector(on_tap_up=self.on_click, content=stack)

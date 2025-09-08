@@ -1,3 +1,11 @@
+"""
+Main entry point for the GolfSim application.
+
+Responsible for initializing the database, starting the Flet UI,
+FastAPI web server, and the folder watcher. Manages the
+application lifecycle and ensures proper termination of all tasks.
+"""
+
 import asyncio
 
 from ui.app import start_flet
@@ -8,6 +16,20 @@ from core.logging_config import logger
 
 
 async def main():
+    """
+    Main coroutine of the application.
+
+    Runs three parallel tasks:
+        - Flet UI (`start_flet`)
+        - Web server (`APIServer.start`)
+        - Folder watcher (`FolderWatcher.check_folder`)
+
+    It also waits for a shutdown event (`shutdown_event`) and
+    properly stops the server and cancels the remaining tasks.
+
+    Raises:
+        Any unhandled errors are logged and re-raised.
+    """
     shutdown_event = asyncio.Event()
     watcher = FolderWatcher()
     server = APIServer()
@@ -20,7 +42,7 @@ async def main():
     }
 
     try:
-        # Ждем либо shutdown_event, либо завершения любой задачи
+        # Wait for either the shutdown_event or the completion of any task
         done, pending = await asyncio.wait(
             list(tasks.values()),
             return_when=asyncio.FIRST_COMPLETED
@@ -28,7 +50,7 @@ async def main():
 
         logger.info("Shutdown initiated")
 
-        # Корректное завершение сервера
+        # Graceful server shutdown
         await server.stop()
 
         # Отмена остальных задач

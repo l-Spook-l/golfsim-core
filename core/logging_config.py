@@ -2,7 +2,8 @@ import logging
 
 logger = logging.getLogger("app")
 # Set the logging level
-logger.setLevel(logging.DEBUG)  # If .setLevel(logging.WARNING) is set, INFO and DEBUG will not be displayed.
+# If .setLevel(logging.WARNING) is set, INFO and DEBUG will not be displayed.
+logger.setLevel(logging.DEBUG)
 
 # Message format
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')

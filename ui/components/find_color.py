@@ -7,6 +7,7 @@ from io import BytesIO
 import cv2
 import flet as ft
 from cvzone.ColorModule import ColorFinder
+from numpy import ndarray
 
 from states.app_page_state import PageState
 from data_base.config_db import async_session_maker
@@ -16,19 +17,48 @@ from core.logging_config import logger
 
 
 class FindBallByColor:
+    """
+    Class for detecting the ball by color using HSV settings.
+
+    Main functionality:
+    - Processes the uploaded image and creates a color mask using HSV.
+    - Asynchronously updates the image on the Flet page.
+    - Configures and saves HSV profiles for different colors.
+    - Manages the asynchronous OpenCV task for updating the image.
+
+    Attributes:
+        page (PageState): Flet page object.
+        active_task (asyncio.Task | None): Current async image update task.
+        stop_event (asyncio.Event): Event to stop the async task.
+        hsv_vals (dict): Dictionary with current HSV parameters.
+        image_path (str): Path to the uploaded image.
+        image_src (str): Path or base64 string of the current image.
+        img_color (numpy.ndarray | None): Image with applied color mask.
+        image_control (ft.Image): UI element for displaying the image.
+        controls_column (ft.Column): Container with HSV control elements.
+        tab_content (ft.Row): Tab container with HSV settings and image.
+    """
+
     def __init__(self):
         self.page = PageState.get_page()
         self.active_task = None
         self.stop_event = asyncio.Event()
-        self.hsv_vals = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 255, 'smax': 255, 'vmax': 255}
-        self.image_path = "mobile_uploads/images/photo.jpg"
-        self.image_src = ""
+        self.hsv_vals: dict = {'hmin': 0, 'smin': 0, 'vmin': 0, 'hmax': 255, 'smax': 255, 'vmax': 255}
+        self.image_path: str = "mobile_uploads/images/photo.jpg"
+        self.image_src: str = ""
         self.img_color = None
         self.image_control = ft.Image(width=1280, height=720, fit=ft.ImageFit.CONTAIN)
         self.controls_column = ft.Column()
         self.tab_content = ft.Row()
 
-    def show_snackbar(self, message: str, status: str):
+    def show_snackbar(self, message: str, status: str) -> None:
+        """
+        Displays a notification on the Flet page.
+
+        Args:
+            message (str): Message text.
+            status (str): Notification status ("success" or "error").
+        """
         self.page.open(
             ft.SnackBar(
                 ft.Text(f"{message}"),
@@ -38,6 +68,17 @@ class FindBallByColor:
         self.page.update()
 
     async def save_hsv_values(self, hsv_value: dict, profile_name: str) -> None:
+        """
+        Saves HSV settings as a profile.
+
+        Args:
+            hsv_value (dict): Dictionary with HSV parameters.
+            profile_name (str): Name of the profile.
+
+        Raises:
+            ProfileNameAlreadyExistsError: If a profile with this name already exists.
+            ProfileLimitReachedError: If the profile limit has been reached.
+        """
         if len(profile_name) < 2:
             self.show_snackbar("Profile name too short", "error")
             return None
@@ -73,8 +114,20 @@ class FindBallByColor:
             self.show_snackbar("You have reached the maximum number of profiles allowed", "error")
         self.controls_column.update()
 
-    async def process_image(self, hsv_vals):
-        """Processes an image and returns a color mask."""
+    async def process_image(self, hsv_vals: dict) -> ndarray:
+        """
+        Processes the image and returns a color mask.
+
+        Args:
+            hsv_vals (dict): Dictionary with HSV parameters.
+
+        Returns:
+            numpy.ndarray: Image with the color highlighted.
+
+        Raises:
+            FileNotFoundError: If the image file is not found.
+            ValueError: If the image could not be loaded.
+        """
         if not os.path.exists(self.image_path):
             raise FileNotFoundError(f"Image file not found: {self.image_path}")
 
@@ -82,42 +135,52 @@ class FindBallByColor:
         if img is None:
             raise ValueError(f"Failed to load image: {self.image_path}")
 
-        # img = img[200:700, :]  # Обрезаем изображение
         color_finder = ColorFinder(False)
         self.img_color, _ = color_finder.update(img, hsv_vals)
         self.img_color = cv2.rotate(self.img_color, cv2.ROTATE_90_COUNTERCLOCKWISE)
         return self.img_color
 
-    async def update_image_with_hsv(self, hsv_vals, image_control):
-        """Асинхронная задача для обновления изображения."""
-        self.stop_event.clear()  # Разрешаем выполнение цикла
+    async def update_image_with_hsv(self, hsv_vals: dict, image_control: ft.Image) -> None:
+        """
+        Asynchronous task for updating the image with the applied HSV mask.
+
+        Args:
+            hsv_vals (dict): Current HSV settings.
+            image_control (ft.Image): Flet element for updating the image.
+        """
+        self.stop_event.clear()  # Allow loop execution
 
         while not self.stop_event.is_set():
             img_color = await self.process_image(hsv_vals)
 
-            # Преобразуем изображение в base64
+            # Convert the image to base64
             _, buffer = cv2.imencode('.jpg', img_color)
             img_bytes = BytesIO(buffer).getvalue()
             img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
-            # Проверяем, что image_control добавлен на страницу
-            #  Проверка image_control.page перед обновлением
-            # → Если image_control удалён, opencv_task не вызовет ошибку.
-            # когда переключаешь вкладки, создаётся новый image_control,
-            # а opencv_task продолжает работать со старым элементом,
-            # которого уже нет на странице. Это и вызывает ошибку
+            # Check that image_control is added to the page
+            # Check image_control.page before updating
+            # → If image_control is removed, opencv_task won't throw an error.
+            # When switching tabs, a new image_control is created,
+            # but opencv_task continues working with the old element,
+            # which is no longer on the page. This causes the error.
             if image_control.page is None:
                 logger.error("Error: image_control was not added to the page. Aborting the task")
                 return
 
-            # Обновляем изображение в Flet
+            # Update the image in Flet
             image_control.src_base64 = img_base64
             image_control.update()
-
-            await asyncio.sleep(0.05)  # Даем небольшую паузу, чтобы снизить нагрузку
+            # Add a short pause to reduce the load
+            await asyncio.sleep(0.05)
 
     async def build_section(self) -> ft.Row:
-        """Загружает вкладку HSV-настроек и управляет асинхронной задачей."""
+        """
+        Creates the tab interface for HSV settings and starts the asynchronous OpenCV task.
+
+        Returns:
+            ft.Row: Tab container with controls and image.
+        """
 
         def update_hsv(_):
             self.hsv_vals.update({
@@ -129,7 +192,7 @@ class FindBallByColor:
                 'vmax': int(vmax.value),
             })
 
-            # Обновление текста значений
+            # Update the text values
             hmin_text.value = f"Hue Min: {self.hsv_vals['hmin']}"
             smin_text.value = f"Saturation Min: {self.hsv_vals['smin']}"
             vmin_text.value = f"Value Min: {self.hsv_vals['vmin']}"
@@ -139,7 +202,7 @@ class FindBallByColor:
 
             self.tab_content.update()
 
-        # Ползунки HSV
+        # HSV sliders
         hmin, smin, vmin = [ft.Slider(min=0, max=255, value=self.hsv_vals[key],
                                       label=key,
                                       on_change=update_hsv,
@@ -189,16 +252,16 @@ class FindBallByColor:
             ft.Container(content=self.image_control, bgcolor="#E4E7EB", padding=10, border_radius=10),
         ])
 
-        # ОСТАНАВЛИВАЕМ старую асинхронную задачу, если она уже работает
+        # STOP the old asynchronous task if it is already running
         if self.active_task is not None:
-            self.stop_event.set()  # Останавливаем цикл в `opencv_task`
+            self.stop_event.set()  # Stop the loop in `opencv_task`
             try:
-                await self.active_task  # Дожидаемся завершения задачи
+                await self.active_task  # Wait for the task to finish
             except asyncio.CancelledError:
                 logger.info("The previous OpenCV process has been successfully stopped")
 
-        # Запускаем новую асинхронную задачу
-        self.stop_event.clear()  # Разрешаем новый запуск
+        # Start a new asynchronous task
+        self.stop_event.clear()  # Allow new start
         self.active_task = asyncio.create_task(self.update_image_with_hsv(self.hsv_vals, self.image_control))
 
         return self.tab_content

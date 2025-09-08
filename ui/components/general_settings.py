@@ -13,6 +13,28 @@ from core.logging_config import logger
 
 
 class GeneralSettings:
+    """
+    Class for managing general application settings.
+
+    Main functionality:
+    - Switching theme (light/dark).
+    - Selecting unit system (imperial, metric, scientific).
+    - Managing HSV settings:
+        • loading profiles,
+        • activation and deletion,
+        • displaying the active profile,
+        • updating the UI after changes.
+
+    Attributes:
+        page (PageState): current Flet page object.
+        unit_system (dict): dictionary of unit system options.
+        theme_mode (tuple): available theme options ("LIGHT", "DARK").
+        container_section (ft.Container): container for the main settings block.
+        active_hsv_set (ft.Container): container for the active HSV set.
+        dlg_modal (ft.AlertDialog): modal window for HSV set selection.
+        hsv_sets_data (list | None): list of inactive HSV sets.
+    """
+
     def __init__(self):
         self.page = PageState.get_page()
         self.unit_system = {
@@ -28,6 +50,14 @@ class GeneralSettings:
 
     @classmethod
     async def save_to_json(cls, field: str, value: str, file_path: str = "settings.json"):
+        """
+        Saves a setting to a JSON file.
+
+        Args:
+            field (str): Name of the field (e.g., "theme" or "units").
+            value (str): New value to save.
+            file_path (str): Path to the settings file.
+        """
         data = await load_settings()
         data[field] = value
         async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
@@ -35,23 +65,44 @@ class GeneralSettings:
         logger.info(f"Theme updated: {value}")
 
     @classmethod
-    async def change_unit_system(cls, value):
+    async def change_unit_system(cls, value: ft.ControlEvent):
+        """
+        Changes the unit system and saves it to JSON.
+
+        Args:
+            value (ft.ControlEvent): Dropdown selection event.
+        """
         units_value = value.data
         logger.info(f'dropdown_changed_unit_system - value {value}')
         await cls.save_to_json('units', units_value)
 
     @classmethod
-    async def change_theme(cls, value):
+    async def change_theme(cls, value: ft.ControlEvent):
+        """
+        Changes the theme (light/dark) and saves it to JSON.
+
+        Args:
+            value (ft.ControlEvent): Switch toggle event.
+        """
         theme_value = "dark" if value.data == "true" else "light"
         logger.info(f'theme_changed - value {value}, {theme_value}')
         await cls.save_to_json('theme', theme_value)
 
     async def load_hsv_sets(self):
+        """
+        Loads the list of inactive HSV profiles from the database.
+        """
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
             self.hsv_sets_data = await repo.get_inactive_hsv_sets()
 
     async def hvs_selector(self):
+        """
+        Creates a dialog window for selecting and managing HSV profiles.
+
+        Returns:
+            ft.AlertDialog: a dialog containing HSV profile cards.
+        """
         await self.load_hsv_sets()
         return ft.AlertDialog(
             title=ft.Text("Choose a HSV set", size=25, text_align=ft.TextAlign.CENTER),
@@ -111,12 +162,25 @@ class GeneralSettings:
         )
 
     async def change_active_hsv_set(self, hsv_id: int):
+        """
+        Activates the selected HSV profile.
+
+        Args:
+            hsv_id (int): ID of the HSV profile.
+        """
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
             await repo.set_active_hsv_set(hsv_id)
         await self.refresh_after_hsv_change()
 
     async def delete_hsv_set(self, hsv_id: int, photo_name: str):
+        """
+        Deletes an HSV profile and its associated image.
+
+        Args:
+            hsv_id (int): ID of the HSV profile.
+            photo_name (str): Path to the profile image.
+        """
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
             await repo.delete_by_id(HSVSetting, hsv_id)
@@ -125,6 +189,10 @@ class GeneralSettings:
         await self.refresh_after_hsv_change()
 
     async def refresh_after_hsv_change(self):
+        """
+        Updates the UI after changing the active HSV profile
+        (either switching or deleting it).
+        """
         self.active_hsv_set = await self.get_active_hsv_set()
         self.hsv_sets_data = await self.load_hsv_sets()
         self.container_section.content.controls[1] = self.active_hsv_set
@@ -133,6 +201,12 @@ class GeneralSettings:
         self.dlg_modal = await self.hvs_selector()
 
     async def get_active_hsv_set(self) -> ft.Container:
+        """
+        Gets the active HSV profile from the database (or creates a default one if not found).
+
+        Returns:
+            ft.Container: UI block containing the active HSV profile.
+        """
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
             data = await repo.get_active_hsv_set()
@@ -188,6 +262,15 @@ class GeneralSettings:
         )
 
     async def build_section(self) -> ft.Container:
+        """
+        Assembles the UI section for general settings:
+        - theme selection
+        - unit system selection
+        - active HSV profile
+
+        Returns:
+            ft.Container: the ready UI interface section.
+        """
         self.dlg_modal = await self.hvs_selector()
         self.active_hsv_set = await self.get_active_hsv_set()
 

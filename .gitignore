@@ -22,3 +22,4 @@ plan.txt
 mobile_uploads/golf_shots/*
 mobile_uploads/images/*
 database.db
+ui/components/tab_stat_graph.py

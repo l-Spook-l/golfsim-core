@@ -2,6 +2,14 @@ import math
 
 
 class AngleCalculator:
+    """
+    A utility class for calculating slopes (gradients) and angles between lines.
+
+    This class provides:
+    - gradient(): a static method to calculate the slope of a line between two points.
+    - get_angle(): a method to calculate the angle between two lines defined by three points.
+    """
+
     @staticmethod
     def gradient(pt1: list, pt2: list) -> float:
         """
@@ -27,7 +35,7 @@ class AngleCalculator:
             points_list (list): A list of points, where each point is a tuple (x, y).
 
         Returns:
-            int: The angle between the two lines, rounded to the nearest integer, in degrees.
+            float: The angle between the two lines, rounded to the nearest integer, in degrees.
 
         Raises:
             ValueError: If there are fewer than three points in the input list.

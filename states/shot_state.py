@@ -6,6 +6,13 @@ from core.logging_config import logger
 
 
 class AngleType(Enum):
+    """
+    Type of shot angle.
+
+    Used to distinguish between:
+    - HORIZONTAL — horizontal angle
+    - VERTICAL — vertical angle
+    """
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
 
@@ -14,11 +21,20 @@ class ShotState:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
+        """
+        Ensures that only one instance of the class is created (Singleton).
+        """
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, data_dir="data"):
+    def __init__(self, data_dir: str = "data"):
+        """
+        Initializes the state and loads data from files.
+
+        Args:
+            data_dir (str): Folder where JSON files are stored.
+        """
         if hasattr(self, "_initialized") and self._initialized:
             return
 
@@ -43,6 +59,10 @@ class ShotState:
         self._initialized = True
 
     def _load_last_shot(self):
+        """
+        Loads the last shot data from a JSON file.
+        If the file is missing or corrupted, default values are used.
+        """
         if self.file_last_shot.exists():
             try:
                 with open(self.file_last_shot, "r", encoding="utf-8") as f:
@@ -55,6 +75,10 @@ class ShotState:
             logger.warning("last_shot_result.json is missing. Using default values.")
 
     def _load_clubs_info(self):
+        """
+        Loads club information from a JSON file.
+        If the file is missing or corrupted, the list remains empty.
+        """
         if self.file_clubs_info.exists():
             try:
                 with open(self.file_clubs_info, "r", encoding="utf-8") as file:
@@ -67,11 +91,16 @@ class ShotState:
             logger.error("clubs_info.json is missing! Clubs not loaded.")
 
     def save(self):
-        # сохраняем выбранный клуб
+        """
+        Saves the current state to JSON files:
+        - selected club (selected_club),
+        - last shot result (shot_data).
+        """
+        # save the selected club
         with open(self.file_selected_club, "w", encoding="utf-8") as f:
             json.dump({"selected_club": self.selected_club}, f, indent=4)
 
-        # сохраняем результат
+        # save the result
         self.shot_data["club"] = self.selected_club
         with open(self.file_last_shot, "w", encoding="utf-8") as f:
             json.dump(self.shot_data, f, indent=4)

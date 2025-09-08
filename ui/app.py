@@ -9,6 +9,15 @@ from core.utils import load_settings
 
 
 async def app(page: ft.Page) -> None:
+    """
+    Main function of the Flet application.
+
+    Sets up the window (title, size, theme),
+    creates tabs (Home, Settings), and adds them to the page.
+
+    Args:
+        page (ft.Page): The Flet page object provided at the start of the application.
+    """
     PageState.set_page(page)
     page.title = "GolfSim"
     page.window.maximized = True
@@ -52,6 +61,13 @@ async def app(page: ft.Page) -> None:
 
 
 async def start_flet(shutdown_event: asyncio.Event = None):
+    """
+    Entry point for running the Flet application in asynchronous mode.
+
+    Args:
+        shutdown_event (asyncio.Event, optional): Event to notify about the application shutdown.
+            If provided, it is set to "set()" upon application termination.
+    """
     try:
         await ft.app_async(
             target=app,

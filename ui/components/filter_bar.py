@@ -8,6 +8,31 @@ from data_base.repositories.golf_shot import GolfShotRepository
 
 
 class FilterBar:
+    """
+    Filter panel component for the golf shot dashboard.
+
+    Provides functionality for:
+    - Selecting a date range (quick select and calendar).
+    - Filtering by clubs.
+    - Sorting by date, ball speed, and carry distance.
+    - Limiting the number of records displayed per page.
+
+    Attributes:
+        page (PageState): Page object.
+        dashboard: Parent dashboard where data is displayed.
+        calendar_date_filter_section (ft.Column): Container with date filter widgets.
+        start_date (datetime | None): Start date of the filter.
+        end_date (datetime | None): End date of the filter.
+        dlg_modal (ft.AlertDialog): Date selection dialog.
+        label_date (str): Text label for the date range.
+        date_range_text (ft.Text): Text displaying the selected date range.
+        select_club (str | None): Selected club for filtering.
+        sort_by (str): Field to sort by ('date', 'carry', 'ball_speed').
+        sort_desc (bool): Sort in descending order if True.
+        limit_records (int): Number of records per page.
+        golf_list_clubs (tuple[str]): List of available clubs.
+    """
+
     def __init__(self, dashboard):
         self.page = PageState.get_page()
         self.dashboard = dashboard
@@ -15,18 +40,24 @@ class FilterBar:
         self.start_date: datetime | None = None
         self.end_date: datetime | None = None
         self.dlg_modal = ft.AlertDialog()
-        self.label_date = ""
+        self.label_date: str = ""
         self.date_range_text = ft.Text()
-        self.select_club = ""
-        self.sort_by = "date"
-        self.sort_desc = True
-        self.limit_records = 10
-        self.golf_list_clubs = (
+        self.select_club: str = ""
+        self.sort_by: str = "date"
+        self.sort_desc: bool = True
+        self.limit_records: int = 10
+        self.golf_list_clubs: tuple = (
             "All clubs", "Driver", "3-Wood", "5-Wood", "4-Iron", "5-Iron", "6-Iron", "7-Iron", "8-Iron",
             "9-Iron", "PW", "GW", "SW", "LW", "Putter")
 
     @staticmethod
     async def fetch_first_shot_date() -> datetime:
+        """
+        Retrieves the date of the first golf shot record from the database.
+
+        Returns:
+            datetime: Date of the first record, or the current date if none exist.
+        """
         async with async_session_maker() as session:
             repo = GolfShotRepository(session)
             date = await repo.get_first_shot_date()
@@ -40,6 +71,14 @@ class FilterBar:
             sort_desc: bool = None,
             limit_records: int = None,
     ) -> None:
+        """
+        Args:
+            days (int, optional): Number of recent days to filter by.
+            club (str, optional): Selected club.
+            sort_by (str, optional): Field to sort by ('date', 'carry', 'ball_speed').
+            sort_desc (bool, optional): Sort in descending order.
+            limit_records (int, optional): Number of records per page.
+        """
         if days is not None:
             self.start_date = (datetime.now() - timedelta(days=days))
         if club is not None:
@@ -62,6 +101,12 @@ class FilterBar:
         self.calendar_date_filter_section.update()
 
     def sort_filter(self) -> ft.Dropdown:
+        """
+        Creates a Dropdown widget for sorting data.
+
+        Returns:
+            ft.Dropdown: UI element for selecting sort options.
+        """
         async def sort_filter_changed(value):
             match value.data:
                 case "ball_speed_desc":
@@ -94,6 +139,12 @@ class FilterBar:
         return sort_filter
 
     def select_club_filter(self) -> ft.Dropdown:
+        """
+        Creates a Dropdown for selecting a club.
+
+        Returns:
+            ft.Dropdown: UI element for club selection.
+        """
         async def dropdown_changed_club(value):
             await self.update_table_data(club=value.data)
 
@@ -109,6 +160,12 @@ class FilterBar:
         )
 
     def update_records_per_page(self) -> ft.Dropdown:
+        """
+        Creates a Dropdown for selecting the number of records per page.
+
+        Returns:
+            ft.Dropdown: UI element for selecting record limit.
+        """
         async def dropdown_changed_records_per_page(value):
             await self.update_table_data(limit_records=value.data)
 
@@ -124,6 +181,12 @@ class FilterBar:
         )
 
     def quick_date_filter(self) -> ft.Container:
+        """
+        Creates quick date range selection (7, 30, 90 days and 1 year).
+
+        Returns:
+            ft.Container: Container with quick date selection buttons.
+        """
         return ft.Container(
             content=ft.Column([
                 ft.Text("Quick Select"),
@@ -149,6 +212,12 @@ class FilterBar:
         )
 
     def calendar_date_filter(self) -> ft.Column:
+        """
+        Creates custom date selection with a calendar.
+
+        Returns:
+            ft.Column: Container with start and end date selection fields.
+        """
         async def handle_change_start(e):
             self.start_date = e.control.value
             await self.update_table_data()
@@ -194,6 +263,15 @@ class FilterBar:
         return self.calendar_date_filter_section
 
     def filter_date_dialog(self, e=None) -> ft.AlertDialog:
+        """
+        Creates a modal window for selecting a date range.
+
+        Args:
+            e (optional): Click event (not used).
+
+        Returns:
+            ft.AlertDialog: Date selection dialog.
+        """
         return ft.AlertDialog(
             title=ft.Text("Select Date Range"),
             content=ft.Column([
@@ -207,6 +285,12 @@ class FilterBar:
         )
 
     def button_date_filter(self) -> ft.Container:
+        """
+        Creates a button to open the date selection dialog.
+
+        Returns:
+            ft.Container: Button displaying the current date range.
+        """
         def on_hover(e):
             e.control.bgcolor = "#A5D6A7" if e.data == "true" else "#E8F5E9"
             e.control.update()
@@ -225,6 +309,12 @@ class FilterBar:
         )
 
     async def build_section(self) -> ft.Container:
+        """
+        Builds the complete filter block for display on the dashboard.
+
+        Returns:
+            ft.Container: Container with the filter button, club selection Dropdown, sorting, and record limit.
+        """
         self.start_date = await self.fetch_first_shot_date()
         self.end_date = datetime.now()
         self.dlg_modal = self.filter_date_dialog()

@@ -15,6 +15,29 @@ from core.logging_config import logger
 
 
 class APIServer:
+    """
+    Class for managing the FastAPI web server.
+
+    Responsible for:
+    - Configuring API routes (file uploads, status, local IP, HSV settings),
+    - Connecting middleware (CORS),
+    - Starting and stopping the uvicorn server,
+    - Storing state (e.g., trainer status).
+
+    Attributes:
+        server (uvicorn.Server | None): Instance of the uvicorn server, used to manage start/stop.
+        app (FastAPI): The FastAPI application object.
+        BASE_UPLOAD_DIR (str): The base directory for file uploads.
+        state (dict): A dictionary for storing state (default is {"status": False}).
+
+    Methods:
+        _setup_routes(): Registers FastAPI endpoints.
+        _setup_middleware(): Adds middleware (e.g., CORS).
+        lifespan(app: FastAPI): Context manager for handling start/stop events.
+        start(): Starts the uvicorn server.
+        stop(): Stops the uvicorn server.
+    """
+
     def __init__(self):
         self.server = None
         self.app = FastAPI(lifespan=self.lifespan)

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import insert, select, update, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,18 +11,37 @@ from core.exceptions import ProfileNameAlreadyExistsError, ProfileLimitReachedEr
 
 
 class PixelDistanceSettingRepository(BaseRepository):
+    """
+    Repository for managing PixelDistance profiles.
+    """
+
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
-    async def add_new_pixel_distance_set(self, data: dict):
+    async def add_new_pixel_distance_set(self, data: dict) -> bool:
+        """
+        Adds a new PixelDistance profile. Sets it as active after creation.
+
+        Args:
+            data (dict): The data for the new profile.
+
+        Raises:
+            ProfileLimitReachedError: If the maximum number of profiles is exceeded.
+            ProfileNameAlreadyExistsError: If a profile with the same name exists.
+
+        Returns:
+            bool: True if the profile was added successfully, False otherwise.
+        """
         try:
             count_records = await self.session.scalar(select(func.count()).select_from(PixelDistance))
             if count_records >= self.MAX_PROFILES:
                 logger.warning(f"Profile limit of {self.MAX_PROFILES} reached , record not added")
                 raise ProfileLimitReachedError()
+
             stat = insert(PixelDistance).values(**data).returning(PixelDistance.id)
             result = await self.session.execute(stat)
             new_id = result.scalar_one()
+
             await self.session.commit()
             await self.set_active_pixel_distance_set(new_id)
             return True
@@ -34,10 +55,21 @@ class PixelDistanceSettingRepository(BaseRepository):
             logger.error(f"Error occurred save new pixel distance data: {error}", exc_info=True)
             return False
 
-    async def set_active_pixel_distance_set(self, pix_dis_id: int):
+    async def set_active_pixel_distance_set(self, pix_dis_id: int) -> bool:
+        """
+        Sets a PixelDistance profile as active by its ID. Deactivates all others.
+
+        Args:
+            pix_dis_id (int): The ID of the profile to activate.
+
+        Returns:
+            bool: True if successfully updated, False otherwise.
+        """
         try:
             await self.session.execute(update(PixelDistance).values(is_active=False))
-            await self.session.execute(update(PixelDistance).where(PixelDistance.id == pix_dis_id).values(is_active=True))
+            await self.session.execute(
+                update(PixelDistance).where(PixelDistance.id == pix_dis_id).values(is_active=True)
+            )
             await self.session.commit()
             return True
         except Exception as error:
@@ -45,7 +77,13 @@ class PixelDistanceSettingRepository(BaseRepository):
             logger.error(f"Error occurred save active profile: {error}", exc_info=True)
             return False
 
-    async def get_active_pixel_distance_set(self):
+    async def get_active_pixel_distance_set(self) -> Optional[PixelDistance]:
+        """
+         Retrieves the currently active PixelDistance profile.
+
+         Returns:
+             Optional[PixelDistance]: The active profile, or None if not found.
+         """
         try:
             query = select(PixelDistance).where(PixelDistance.is_active).limit(1)
             result = await self.session.execute(query)

@@ -7,7 +7,32 @@ from ui.components.drive_range_dashboard import DriveRangeDashboard
 
 
 class LastShotSection:
+    """
+    Class for displaying and managing the "Last Shot" section.
+
+    Main functionality:
+    - Displays information about the last shot.
+    - Allows selection and switching of the active club.
+    - Switches between angle analysis mode (vertical/horizontal).
+    - Forms a UI block with a table of shot parameters and a dashboard.
+
+    Attributes:
+        page (PageState): the current Flet page object.
+        last_shot (dict): data about the last shot (corresponds to LastGolfShotSchema).
+        active_club (dict): the currently selected club {"name": str, "image": str}.
+        angle_mode (str | None): the angle analysis mode (vertical/horizontal).
+        golf_clubs (dict): dictionary of available clubs.
+        dlg_modal (ft.AlertDialog): dialog window for club selection.
+        button_select_club (ft.Container | None): button for selecting a club.
+        shot_state (ShotState): the shot state object.
+        drive_range_dashboard (DriveRangeDashboard): the training field dashboard.
+    """
+
     def __init__(self, last_shot: dict):
+        """
+        Args:
+            last_shot (dict): data about the last shot.
+        """
         self.page = PageState.get_page()
         self.last_shot = last_shot
         self.active_club = {"name": "", "image": ""}
@@ -19,6 +44,11 @@ class LastShotSection:
         self.drive_range_dashboard = DriveRangeDashboard()
 
     async def load_clubs_info(self):
+        """
+        Loads information about the clubs from the shot state.
+
+        Sets the active club and the dictionary of available clubs.
+        """
         self.golf_clubs = self.shot_state.golf_clubs
         name_active_club = self.shot_state.club
         self.active_club = {
@@ -27,6 +57,13 @@ class LastShotSection:
         }
 
     def update_selected_club(self, club_name: str, club_image_src: str):
+        """
+        Updates the selected club and saves it to the state.
+
+        Args:
+            club_name (str): name of the club.
+            club_image_src (str): path to the image of the club.
+        """
         self.active_club["name"] = club_name
         self.active_club["image"] = club_image_src
 
@@ -41,6 +78,12 @@ class LastShotSection:
         self.page.update()
 
     def build_club_selector(self) -> ft.AlertDialog:
+        """
+        Creates a dialog window for selecting a club.
+
+        Returns:
+            ft.AlertDialog: a window for selecting clubs.
+        """
         return ft.AlertDialog(
             title=ft.Text("Choose a club", size=25, text_align=ft.TextAlign.CENTER),
             content=ft.Container(
@@ -77,6 +120,12 @@ class LastShotSection:
         )
 
     def set_angle_mode(self):
+        """
+        Creates a component for switching the angle analysis mode.
+
+        Returns:
+            ft.Container: a container with a switch (RadioGroup).
+        """
         mode_txt = ft.Text("Angle mode", size=24)
 
         def set_mode(val: str):
@@ -113,6 +162,12 @@ class LastShotSection:
         )
 
     def build_last_shot_table(self) -> ft.Container:
+        """
+        Generates a data table for the last shot with options for selecting the club and angle mode.
+
+        Returns:
+            ft.Container: a container with the table and control buttons.
+        """
         last_shot_data = []
         for field_name, field_value in LastGolfShotSchema.model_fields.items():
             title = field_value.title
@@ -162,6 +217,16 @@ class LastShotSection:
         )
 
     async def build_section(self) -> ft.Container:
+        """
+        Assembles the "Last Shot" section:
+        - loads club data
+        - initializes the club selection dialog
+        - creates the last shot data table
+        - connects the dashboard
+
+        Returns:
+            ft.Container: the ready UI block to be inserted into the app.
+        """
         await self.load_clubs_info()
         self.dlg_modal = self.build_club_selector()
         last_shot_table = self.build_last_shot_table()

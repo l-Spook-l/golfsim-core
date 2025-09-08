@@ -32,8 +32,8 @@ class HSVSetting(Base):
     saturation_min: Mapped[int]
     saturation_max: Mapped[int]
     value_min: Mapped[int]
-    photo: Mapped[str | None]
     value_max: Mapped[int]
+    photo: Mapped[str | None]
     is_active: Mapped[bool] = mapped_column(default=False)
 
 

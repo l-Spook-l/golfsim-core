@@ -18,8 +18,20 @@ from core.config import myColorFinder, FRAMES_IN_SECOND, MIN_AREA
 
 
 class HSVSettingsManager:
+    """
+    Class for working with HSV settings (color filter).
+
+    Responsible for retrieving active HSV parameters from the database.
+    """
+
     @staticmethod
     async def get_active_hsv() -> dict:
+        """
+        Retrieves the active set of HSV settings from the database and converts keys to a more readable format.
+
+        Returns:
+            dict: Dictionary with HSV settings
+        """
         key_mapping = {
             "hmin": "hue_min",
             "smin": "saturation_min",
@@ -38,14 +50,35 @@ class HSVSettingsManager:
 
 
 class ShotDataManager:
+    """
+    Class for managing shot data.
+
+    Responsible for saving shots and retrieving club parameters.
+    """
+
     @staticmethod
     async def save_shot(shot_result: dict):
+        """
+        Saves shot data to the database.
+
+        Args:
+            shot_result (dict): Received data about the shot
+        """
         async with async_session_maker() as session:
             repo = GolfShotRepository(session)
             await repo.add_new_shot(shot_result)
 
     @staticmethod
     async def get_spin_for_club(club: str) -> int:
+        """
+        Retrieves the average spin value for the selected club from a JSON file.
+
+        Args:
+            club (str): Name of the club
+
+        Returns:
+            int: Average spin rate value.
+        """
         async with aiofiles.open("data/clubs_info.json", "r", encoding='utf-8') as file:
             clubs = await file.read()
             clubs_data = json.loads(clubs)
@@ -53,7 +86,18 @@ class ShotDataManager:
 
 
 class GolfBallTracker:
-    def __init__(self, hsv_vals, frame_time):
+    """
+    Class for tracking the ball's flight trajectory frame by frame.
+
+    Calculates speed, angles, and other parameters.
+    """
+
+    def __init__(self, hsv_vals: dict, frame_time: float):
+        """
+        Args:
+            hsv_vals (dict): HSV settings for ball detection.
+            frame_time (float): Time between frames (1/FPS).
+        """
         self.hsv_vals = hsv_vals
         self.frame_time = frame_time
         self.angle_calculator = AngleCalculator()
@@ -61,6 +105,9 @@ class GolfBallTracker:
         self.reset()
 
     def reset(self):  # мб поменять название
+        """
+        Resets tracker parameters before a new shot.
+        """
         self.pos_list = []
         self.list_counter = 1
         self.counter = -1
@@ -79,7 +126,19 @@ class GolfBallTracker:
         self.frame_count = 0
         self.seconds = 0
 
-    def process_frame(self, frame):
+    def process_frame(self, frame) -> dict | None:
+        """
+        Processes a single video frame:
+        - searches for the ball using an HSV filter
+        - updates the list of coordinates
+        - checks if the shot is completed
+
+        Args:
+            frame: Video frame.
+
+        Returns:
+            dict | None: Shot results or None if the shot is not yet completed.
+        """
         self.frame_count += 1
         self.seconds += self.frame_time
         img_color, mask = myColorFinder.update(frame, self.hsv_vals)
@@ -93,7 +152,13 @@ class GolfBallTracker:
 
         return None
 
-    def _update_positions(self, center):
+    def _update_positions(self, center: tuple):
+        """
+        Updates the list of coordinates and recalculates the speed.
+
+        Args:
+            center (tuple): Coordinates of the detected contour's center.
+        """
         if center not in self.pos_list:
             self.pos_list.append(center)
             self.counter += 1
@@ -109,14 +174,22 @@ class GolfBallTracker:
             self.distance_list_x.append(self.distance_cm_x)
             self.distance_list_y.append(self.distance_cm_y)
 
-            self.speed_x = ((self.distance_cm_x - self.distance_list_x[len(self.distance_list_x) - 2]) / self.frame_time) / 100
-            self.speed_y = ((self.distance_cm_y - self.distance_list_y[len(self.distance_list_y) - 2]) / self.frame_time) / 100
+            self.speed_x = ((self.distance_cm_x - self.distance_list_x[
+                len(self.distance_list_x) - 2]) / self.frame_time) / 100
+            self.speed_y = ((self.distance_cm_y - self.distance_list_y[
+                len(self.distance_list_y) - 2]) / self.frame_time) / 100
             self.speed = ((self.speed_x ** 2) + (self.speed_y ** 2)) ** 0.5
 
             if self.speed > self.max_speed:
                 self.max_speed = round(self.speed, 2)
 
-    def _finalize_shot(self):
+    def _finalize_shot(self) -> dict:
+        """
+        Завершает обработку удара и рассчитывает углы.
+
+        Returns:
+            dict: Результаты удара (скорость, углы, клюшка).
+        """
         self.coordinates_angle = [self.pos_list[7], self.pos_list[-1], [self.pos_list[-1][0], self.pos_list[7][1]]]
         angle = self.angle_calculator.get_angle(self.coordinates_angle)
         club = self.shot_state.club
@@ -132,13 +205,31 @@ class GolfBallTracker:
 
 
 class ShotAnalyzer:
+    """
+    Class for analyzing shots and saving results to the database.
+    """
+
     def __init__(self, tracker: GolfBallTracker, data_manager: ShotDataManager):
+        """
+        Args:
+            tracker (GolfBallTracker): Tracker for shot tracking.
+            data_manager (ShotDataManager): Class for saving data.
+        """
         self.tracker = tracker
         self.data_manager = data_manager
 
-    async def analyze_and_save(self, shot_data):
+    async def analyze_and_save(self, shot_data: dict) -> None:
+        """
+        Analyzes the shot:
+        - calculates parameters (speed, angles, spin)
+        - saves the result to the database
+        - resets the tracker for a new shot
+
+        Args:
+            shot_data (dict): Raw shot data.
+        """
         spin = await self.data_manager.get_spin_for_club(shot_data["club"])
-        if (shot_data["max_speed"] * 2.237 >= 45) and (5 <= shot_data["angle_v"] <= 45) and shot_data["angle_h"] <= 45:  # !!!!!!угол то строка!!
+        if (shot_data["max_speed"] * 2.237 >= 45) and (5 <= shot_data["angle_v"] <= 45) and shot_data["angle_h"] <= 45:
             result = await ParserFlightscope.get_shot_result(
                 shot_data["max_speed"] * 2.237,
                 shot_data["angle_v"],
@@ -163,10 +254,26 @@ class ShotAnalyzer:
 
 
 class VideoProcessor:
+    """
+    Class for processing videos with shots.
+
+    Loads videos, runs the tracker and analyzer.
+    """
+
     def __init__(self, name_video_file: str):
+        """
+        Args:
+            name_video_file (str): Name of the video file with the shot.
+        """
         self.video_path = f'mobile_uploads/golf_shots/{name_video_file}'
 
-    async def run(self):
+    async def run(self) -> None:
+        """
+        Starts video processing:
+        - reads frames
+        - processes each frame
+        - starts shot analysis upon its completion
+        """
         cap = cv2.VideoCapture(self.video_path)
 
         hsv_manager = HSVSettingsManager()
