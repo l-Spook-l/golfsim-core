@@ -96,9 +96,11 @@ class FilterBar:
         )
         self.date_range_text.value = f"{self.start_date.strftime('%Y-%m-%d')} - {self.end_date.strftime('%Y-%m-%d')}"
         self.date_range_text.update()
-        self.calendar_date_filter_section.controls[1].controls[1].value = self.start_date.strftime('%Y-%m-%d')
-        self.calendar_date_filter_section.controls[2].controls[1].value = self.end_date.strftime('%Y-%m-%d')
-        self.calendar_date_filter_section.update()
+
+        if self.calendar_date_filter_section.page is not None:
+            self.calendar_date_filter_section.controls[1].controls[1].value = self.start_date.strftime('%Y-%m-%d')
+            self.calendar_date_filter_section.controls[2].controls[1].value = self.end_date.strftime('%Y-%m-%d')
+            self.calendar_date_filter_section.update()
 
     def sort_filter(self) -> ft.Dropdown:
         """
