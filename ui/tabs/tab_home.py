@@ -111,7 +111,6 @@ class HomeView:
                     self.last_shot_section,
                     self.drive_range_dashboard
                 ])
-                self.selected_club.club = "Driver"
             case "putting":
                 self.current_section.content = ft.Column([
                     ft.Row([
@@ -120,7 +119,6 @@ class HomeView:
                     ]),
                     self.last_shot_section
                 ])
-                self.selected_club.club = "Putter"
             case "play-course":
                 self.current_section.content = ft.Column([
                     ft.Row([
@@ -129,7 +127,6 @@ class HomeView:
                     ]),
                     self.last_shot_section
                 ])
-                self.selected_club.club = "Driver"
         self.selected_club.save()
         self.current_section.update()
 
