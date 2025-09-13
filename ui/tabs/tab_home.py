@@ -26,9 +26,10 @@ class HomeView:
         current_section_name (str): name of the active section.
         latest_shot_data (dict | None): data for the last shot.
         last_shot_section (ft.Container | None): section displaying the last shot.
+        drive_range_section (ft.Column | None): section displaying the driving range section
         button_return_home (ft.IconButton): button to return to the main menu.
         selected_club (ShotState): state of the selected golf club.
-        drive_range_dashboard (DriveRangeDashboard | None): dashboard for the driving range.
+        drive_range_dashboard_manager (DriveRangeDashboard): dashboard manager for the driving range.
     """
 
     def __init__(self):
@@ -37,9 +38,10 @@ class HomeView:
         self.current_section_name: str = ""
         self.latest_shot_data = None
         self.last_shot_section = None
+        self.drive_range_section = None
         self.button_return_home = ft.IconButton(icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.load_home_page())
         self.selected_club = ShotState()
-        self.drive_range_dashboard = None
+        self.drive_range_dashboard_manager = DriveRangeDashboard()
 
     async def init(self) -> ft.Container:
         """
@@ -54,7 +56,7 @@ class HomeView:
         """
         self.latest_shot_data = await self.last_shot()
         self.last_shot_section = await LastShotSection(self.latest_shot_data).build_section()
-        self.drive_range_dashboard = await DriveRangeDashboard().build_section()
+        self.drive_range_section = await self.drive_range_dashboard_manager.build_section()
 
         self.home_page = ft.Container(
             content=ft.Row(
@@ -109,7 +111,7 @@ class HomeView:
                         ft.Text("Drive range", size=28, weight=ft.FontWeight.BOLD)
                     ]),
                     self.last_shot_section,
-                    self.drive_range_dashboard
+                    self.drive_range_section
                 ])
             case "putting":
                 self.current_section.content = ft.Column([
@@ -158,13 +160,13 @@ class HomeView:
         """
         last_data = self.latest_shot_data
         while True:
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
             new_shot_data = await self.last_shot()
             if new_shot_data != last_data:
                 logger.info("New shot detected, refreshing section")
                 self.latest_shot_data = new_shot_data
                 self.last_shot_section = await LastShotSection(new_shot_data).build_section()
                 if self.current_section_name == "drive-range":
-                    self.drive_range_dashboard = await DriveRangeDashboard().build_section()
+                    self.drive_range_section = await self.drive_range_dashboard_manager.build_section()
                     self.update_section("drive-range")
                 last_data = new_shot_data

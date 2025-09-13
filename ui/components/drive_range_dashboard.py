@@ -26,6 +26,7 @@ class DriveRangeDashboard:
         self.view_selector = ft.Tabs()
         self.dashboard_content = ft.Container()
         self.tab_content = ft.Column()
+        self.filter_params: list = []
 
     async def change_view_dashboard(self, e) -> None:
         """
@@ -66,7 +67,8 @@ class DriveRangeDashboard:
             sort_desc (bool, optional): Sort descending if True.
             limit_records (int, optional): Limit number of records.
         """
-        data = await GolfShotTable().load_data(start_date, end_date, club, sort_by, sort_desc, limit_records)
+        self.filter_params = [start_date, end_date, club, sort_by, sort_desc, limit_records]
+        data = await GolfShotTable().load_data(*self.filter_params)
         self.table = await self.load_table.load_stat_table(data)
         self.dashboard_content.content = self.table
         self.dashboard_content.update()
@@ -78,7 +80,8 @@ class DriveRangeDashboard:
         Returns:
             ft.Column: Flet Column widget containing all dashboard components.
         """
-        self.table = await self.load_table.load_stat_table()
+        data = await GolfShotTable().load_data(*self.filter_params)
+        self.table = await self.load_table.load_stat_table(data)
         self.filter_bar = await self.load_filter_bar.build_section()
 
         self.view_selector = ft.Tabs(
