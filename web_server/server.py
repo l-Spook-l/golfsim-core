@@ -45,8 +45,13 @@ class APIServer:
         self.state = {"status": False}
         self._setup_routes()
         self._setup_middleware()
+        self.ip = local_ip()
 
     def _setup_routes(self):
+        @self.app.get("/ping")
+        async def ping():
+            return {"message": "pong"}
+
         @self.app.post("/upload")
         async def upload_file(file: UploadFile = File(...)):
             file_type = file.content_type.split("/")[0]
@@ -74,11 +79,6 @@ class APIServer:
         async def update_status(new_state: dict):
             self.state["status"] = new_state.get("status", self.state["status"])
             return {"status": self.state["status"]}
-
-        @self.app.get("/local-ip")
-        async def get_local_ip():
-            ip = local_ip()
-            return {"local_ip": ip}
 
         @self.app.get("/get-hsv")
         async def get_hsv() -> dict:
@@ -109,7 +109,7 @@ class APIServer:
     async def start(self):
         config = uvicorn.Config(
             self.app,
-            host="192.168.50.107",
+            host=self.ip,
             port=7878,
             lifespan="on"
         )
