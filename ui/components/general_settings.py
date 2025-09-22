@@ -5,6 +5,7 @@ import flet as ft
 import aiofiles
 
 from states.app_page_state import PageState
+from web_server.find_local_ip import get_local_ip
 from data_base.config_db import async_session_maker
 from data_base.models import HSVSetting
 from data_base.repositories.hsv_setting import HSVSettingRepository
@@ -46,7 +47,8 @@ class GeneralSettings:
         self.container_section = ft.Container()
         self.active_hsv_set = ft.Container()
         self.dlg_modal = ft.AlertDialog()
-        self.hsv_sets_data = None
+        self.hsv_profiles_data = []
+        self.local_ip = ""
 
     @classmethod
     async def save_to_json(cls, field: str, value: str, file_path: str = "settings.json"):
@@ -88,7 +90,11 @@ class GeneralSettings:
         logger.info(f'theme_changed - value {value}, {theme_value}')
         await cls.save_to_json('theme', theme_value)
 
-    async def load_hsv_sets(self):
+    def set_local_ip(self):
+        """Update self.local_ip with the current machine's local IP address."""
+        self.local_ip = get_local_ip()
+
+    async def load_hsv_profiles(self):
         """
         Loads the list of inactive HSV profiles from the database.
         """
@@ -271,8 +277,9 @@ class GeneralSettings:
         Returns:
             ft.Container: the ready UI interface section.
         """
-        self.dlg_modal = await self.hvs_selector()
-        self.active_hsv_set = await self.get_active_hsv_set()
+        self.dlg_modal = await self.hsv_selector()
+        self.active_hsv_profile = await self.get_active_hsv_profile()
+        self.set_local_ip()
 
         dropdown_select_unit_system = ft.Dropdown(
             value="Imperial",
@@ -281,6 +288,14 @@ class GeneralSettings:
                 ft.dropdown.Option(system) for system in self.unit_system.keys()
             ],
             width=150,
+        )
+
+        ip = ft.Container(
+            content=ft.Text(f"IP - {self.local_ip}", size=20),
+            padding=10,
+            width=200,
+            bgcolor="#E4E7EB",
+            border_radius=10
         )
 
         theme = ft.Container(
@@ -311,6 +326,7 @@ class GeneralSettings:
             content=ft.Row(
                 [
                     ft.Column([
+                        ip,
                         theme,
                         simulator,
                     ]),
