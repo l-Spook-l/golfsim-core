@@ -30,10 +30,11 @@ class GeneralSettings:
         page (PageState): current Flet page object.
         unit_system (dict): dictionary of unit system options.
         theme_mode (tuple): available theme options ("LIGHT", "DARK").
-        container_section (ft.Container): container for the main settings block.
-        active_hsv_set (ft.Container): container for the active HSV set.
+        settings_container (ft.Container): container for the main settings block.
+        active_hsv_profile (ft.Container): container for the active HSV profile.
         dlg_modal (ft.AlertDialog): modal window for HSV set selection.
-        hsv_sets_data (list | None): list of inactive HSV sets.
+        hsv_profiles_data (list): list of inactive HSV profiles.
+        local_ip (str): current machine's local IP address.
     """
 
     def __init__(self):
@@ -269,13 +270,16 @@ class GeneralSettings:
 
     async def build_section(self) -> ft.Container:
         """
-        Assembles the UI section for general settings:
-        - theme selection
-        - unit system selection
-        - active HSV profile
+        Build the main "General Settings" section of the UI.
+
+        Includes:
+            - Local IP address block
+            - Theme switcher (light/dark)
+            - Unit system selector (Imperial, Metric, Scientific)
+            - Active HSV profile block with controls
 
         Returns:
-            ft.Container: the ready UI interface section.
+            ft.Container: Fully assembled Flet container with all settings UI.
         """
         self.dlg_modal = await self.hsv_selector()
         self.active_hsv_profile = await self.get_active_hsv_profile()
