@@ -44,8 +44,8 @@ class GeneralSettings:
             "Scientific": {"Distance": "Meters", "Speed": "m/s"},
         }
         self.theme_mode = ("LIGHT", "DARK")
-        self.container_section = ft.Container()
-        self.active_hsv_set = ft.Container()
+        self.settings_container = ft.Container()
+        self.active_hsv_profile = ft.Container()
         self.dlg_modal = ft.AlertDialog()
         self.hsv_profiles_data = []
         self.local_ip = ""
@@ -100,16 +100,16 @@ class GeneralSettings:
         """
         async with async_session_maker() as session:
             repo = HSVSettingRepository(session)
-            self.hsv_sets_data = await repo.get_inactive_hsv_sets()
+            self.hsv_profiles_data = await repo.get_inactive_hsv_sets()
 
-    async def hvs_selector(self):
+    async def hsv_selector(self):
         """
         Creates a dialog window for selecting and managing HSV profiles.
 
         Returns:
             ft.AlertDialog: a dialog containing HSV profile cards.
         """
-        await self.load_hsv_sets()
+        await self.load_hsv_profiles()
         return ft.AlertDialog(
             title=ft.Text("Choose a HSV set", size=25, text_align=ft.TextAlign.CENTER),
             content=ft.Container(
@@ -128,14 +128,14 @@ class GeneralSettings:
                                             icon=ft.Icons.SPELLCHECK_ROUNDED,
                                             icon_color="green",
                                             on_click=lambda e, hsv_id=hsv_data.id: self.page.run_task(
-                                                self.change_active_hsv_set, hsv_id)
+                                                self.change_active_hsv_profile, hsv_id)
                                         ),
                                         ft.Text(f"{hsv_data.profile_name}", size=22),
                                         ft.IconButton(
                                             icon=ft.Icons.DELETE_FOREVER_OUTLINED,
                                             icon_color="red",
                                             on_click=lambda e, hsv_id=hsv_data.id, photo_name=hsv_data.photo:
-                                            self.page.run_task(self.delete_hsv_set, hsv_id, photo_name)
+                                            self.page.run_task(self.delete_hsv_profile, hsv_id, photo_name)
                                         ),
                                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                                 ),
@@ -159,15 +159,15 @@ class GeneralSettings:
                                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                                 )
                             ])
-                        ) for hsv_data in self.hsv_sets_data[i:i + 4]
-                    ]) for i in range(0, len(self.hsv_sets_data), 4)
+                        ) for hsv_data in self.hsv_profiles_data[i:i + 4]
+                    ]) for i in range(0, len(self.hsv_profiles_data), 4)
                 ])
             ),
             bgcolor="#E4E7EB",
             on_dismiss=lambda e: print("Диалог закрыт")
         )
 
-    async def change_active_hsv_set(self, hsv_id: int):
+    async def change_active_hsv_profile(self, hsv_id: int):
         """
         Activates the selected HSV profile.
 
@@ -179,7 +179,7 @@ class GeneralSettings:
             await repo.set_active_hsv_set(hsv_id)
         await self.refresh_after_hsv_change()
 
-    async def delete_hsv_set(self, hsv_id: int, photo_name: str):
+    async def delete_hsv_profile(self, hsv_id: int, photo_name: str):
         """
         Deletes an HSV profile and its associated image.
 
@@ -199,14 +199,14 @@ class GeneralSettings:
         Updates the UI after changing the active HSV profile
         (either switching or deleting it).
         """
-        self.active_hsv_set = await self.get_active_hsv_set()
-        self.hsv_sets_data = await self.load_hsv_sets()
-        self.container_section.content.controls[1] = self.active_hsv_set
-        self.container_section.update()
+        self.active_hsv_profile = await self.get_active_hsv_profile()
+        self.hsv_profiles_data = await self.load_hsv_profiles()
+        self.settings_container.content.controls[1] = self.active_hsv_profile
+        self.settings_container.update()
         self.page.close(self.dlg_modal)
-        self.dlg_modal = await self.hvs_selector()
+        self.dlg_modal = await self.hsv_selector()
 
-    async def get_active_hsv_set(self) -> ft.Container:
+    async def get_active_hsv_profile(self) -> ft.Container:
         """
         Gets the active HSV profile from the database (or creates a default one if not found).
 
@@ -322,7 +322,7 @@ class GeneralSettings:
             border_radius=10
         )
 
-        self.container_section = ft.Container(
+        self.settings_container = ft.Container(
             content=ft.Row(
                 [
                     ft.Column([
@@ -330,11 +330,11 @@ class GeneralSettings:
                         theme,
                         simulator,
                     ]),
-                    self.active_hsv_set
+                    self.active_hsv_profile
                 ],
                 spacing=20,
             ),
             padding=20
         )
 
-        return self.container_section
+        return self.settings_container
