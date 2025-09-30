@@ -1,11 +1,11 @@
 # 🏌️ GolfSim
 
-![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)  
-![Flet](https://img.shields.io/badge/Flet-GUI_Framework-00BFA5?logo=flet)  
-![FastAPI](https://img.shields.io/badge/FastAPI-Web_Framework-009688?logo=fastapi)  
-![OpenCV](https://img.shields.io/badge/OpenCV-Computer_Vision-5C3EE8?logo=opencv)  
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-red?logo=python)  
-![Selenium](https://img.shields.io/badge/Selenium-Web_Automation-43B02A?logo=selenium)  
+![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)
+![Flet](https://img.shields.io/badge/Flet-GUI_Framework-00BFA5?logo=flet)
+![FastAPI](https://img.shields.io/badge/FastAPI-Web_Framework-009688?logo=fastapi)
+![OpenCV](https://img.shields.io/badge/OpenCV-Computer_Vision-5C3EE8?logo=opencv)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-red?logo=python)
+![Selenium](https://img.shields.io/badge/Selenium-Web_Automation-43B02A?logo=selenium)
 
 ## 📖 About the Project
 **GolfSim** is a golf simulator with shot analysis and statistics visualization.  
@@ -35,13 +35,13 @@ The system consists of a **desktop application** and a **mobile client**:
 ---
 
 ## 🖼️ Screenshots
-Main Menu:  
+### Main Menu:  
 ![Main Menu](docs/images/main_menu.png)  
 
-Driving Range Table:  
+### Driving Range Table:  
 ![Driving Range](docs/images/drive_range_table.png)  
 
-Color settings & active profile switch:  
+### Color settings & active profile switch:  
 ![Color Settings](docs/gif/set_color.gif)  
 ![Switch Active Profile](docs/gif/change_active_set.gif)  
 
