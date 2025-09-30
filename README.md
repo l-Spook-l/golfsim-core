@@ -54,3 +54,12 @@ cd golfSim
 pip install -r requirements.txt
 python main.py
 ```
+
+---
+
+## Developers
+- https://github.com/l-Spook-l
+
+## Contact
+
+If you have any questions or suggestions for improving the project, please contact serhii.mykhailovskyi.ua@gmail.com.
